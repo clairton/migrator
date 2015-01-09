@@ -26,12 +26,11 @@ public class Migrator implements javax.enterprise.inject.spi.Extension {
 
 	private Liquibase liquibase;
 
-	public void init(
-			final @Observes AfterDeploymentValidation afterDeploymentValidation)
+	public void init(final @Observes AfterDeploymentValidation adv)
 			throws Exception {
 		logger.info("Iniciando migração do banco de dados");
 		migrate();
-		current().select(Inserter.class).get();
+		current().select(Inserter.class).get().init();
 	}
 
 	@Transactional
@@ -39,6 +38,15 @@ public class Migrator implements javax.enterprise.inject.spi.Extension {
 		try {
 			final Connection connection = current().select(Connection.class)
 					.get();
+			Config config = current().select(Config.class).get();
+			migrate(connection, config);
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	public void migrate(Connection connection, Config config) {
+		try {
 			final DatabaseConnection jdbcConnection = new JdbcConnection(
 					connection);
 			final Database database = getInstance()
@@ -46,7 +54,7 @@ public class Migrator implements javax.enterprise.inject.spi.Extension {
 			final ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor(
 					getClass().getClassLoader());
 			liquibase = new Liquibase(changelog, resourceAccessor, database);
-			if (current().select(Config.class).get().isDropAll()) {
+			if (config.isDropAll()) {
 				logger.info("Deletando objetos");
 				liquibase.dropAll();
 			}

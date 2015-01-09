@@ -37,20 +37,20 @@ public class CsvDataSet extends CachedDataSet implements IDataSet {
 		produceFromFile(file);
 	}
 
-	private void produceFromFile(final File theDataFile)
-			throws DataSetException, CsvParserException {
+	private void produceFromFile(final File file) throws DataSetException,
+			CsvParserException {
 		try {
 			final CsvParser parser = new CsvParserImpl();
-			final List<?> readData = parser.parse(theDataFile);
+			final List<?> readData = parser.parse(file);
 			final List<?> readColumns = ((List<?>) readData.get(0));
 			final Column[] columns = new Column[readColumns.size()];
 			for (int i = 0; i < readColumns.size(); i++) {
 				final String columnName = ((String) readColumns.get(i)).trim();
 				columns[i] = new Column(columnName, DataType.UNKNOWN);
 			}
-			;
-			final String tableName = theDataFile.getName().substring(0,
-					theDataFile.getName().indexOf(".csv"));
+			final String fileName = file.getName();
+			final Integer endIndex = fileName.indexOf(".csv");
+			final String tableName = fileName.substring(0, endIndex);
 			final ITableMetaData metaData = new DefaultTableMetaData(tableName,
 					columns);
 			startTable(metaData);
@@ -58,8 +58,11 @@ public class CsvDataSet extends CachedDataSet implements IDataSet {
 				final List<?> rowList = (List<?>) readData.get(i);
 				final Object[] row = rowList.toArray();
 				for (int col = 0; col < row.length; col++) {
-					row[col] = row[col].equals(CsvDataSetWriter.NULL) ? null
-							: row[col];
+					if (row[col].equals(CsvDataSetWriter.NULL)) {
+						row[col] = null;
+					} else {
+						row[col] = row[col];
+					}
 				}
 				row(row);
 			}

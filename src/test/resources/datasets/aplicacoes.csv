@@ -2,3 +2,4 @@ id,nome
 1001,Corretora
 1002,Controladoria
 1003,Financeiro
+1004,${sql(select 'Valor por Sql' from aplicacoes)}

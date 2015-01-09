@@ -1,27 +1,39 @@
 package br.eti.clairton.migrator;
 
+import static org.dbunit.database.DatabaseConfig.PROPERTY_DATATYPE_FACTORY;
+import static java.nio.file.Files.walkFileTree;
+
 import java.io.File;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Default;
-import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
-import org.dbunit.database.DatabaseConfig;
 import org.dbunit.database.DatabaseConnection;
 import org.dbunit.database.DatabaseSequenceFilter;
 import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.FilteredDataSet;
 import org.dbunit.dataset.IDataSet;
+import org.dbunit.dataset.ReplacementDataSet;
+import org.dbunit.dataset.datatype.DefaultDataTypeFactory;
 import org.dbunit.dataset.filter.ITableFilter;
 import org.dbunit.ext.hsqldb.HsqldbDataTypeFactory;
 import org.dbunit.operation.DatabaseOperation;
@@ -49,11 +61,29 @@ public class Inserter {
 		this.config = config;
 	}
 
-	@PostConstruct
 	public void init() throws Exception {
 		if (config.isInsert()) {
 			logger.info("Carregando dataSets");
-			load(config.getDataSetPath(), connection);
+			final Collection<String> files = new ArrayList<>();
+			walkFileTree(new File(config.getDataSetPath()).toPath(),
+					new SimpleFileVisitor<Path>() {
+						@Override
+						public FileVisitResult visitFile(final Path file,
+								final BasicFileAttributes attrs)
+								throws IOException {
+							if (file.toString().endsWith(".csv")) {
+								files.add(file.toAbsolutePath().toString());
+							}
+							return FileVisitResult.CONTINUE;
+						}
+
+						@Override
+						public FileVisitResult postVisitDirectory(Path dir,
+								IOException exc) throws IOException {
+							return FileVisitResult.CONTINUE;
+						}
+					});
+			load(files, connection);
 		}
 	}
 
@@ -67,15 +97,14 @@ public class Inserter {
 	 *             caso ocorra um erro ao popular a dataBase
 	 */
 	@Transactional
-	public void load(final DataSet annotation) throws Exception {
+	public void load(final DataSet annotation, final Connection connection)
+			throws Exception {
 		final Collection<String> files = Arrays.asList(annotation.value());
 		logger.info("Datasets a inserir " + files);
 		final Annotation qualifier = getQualifier(annotation.qualifier());
 		logger.info("Recuperando conexão com qualifier " + qualifier);
-		final Connection connnection = CDI.current()
-				.select(Connection.class, qualifier).get();
-		logger.info("Conexão recuperada " + connnection);
-		load(files, connnection);
+		logger.info("Conexão recuperada " + connection);
+		load(files, connection);
 	}
 
 	/**
@@ -93,19 +122,40 @@ public class Inserter {
 	public void load(final Collection<String> files, final Connection connection)
 			throws Exception {
 		final Collection<IDataSet> dataSets = new ArrayList<>(files.size());
-		for (final String file : files) {
+		for (final String path : files) {
 			final IDataSet dataSet;
-			if (file.endsWith(".csv")) {
-				dataSet = new CsvDataSet(new File(file));
+			final File file = new File(path);
+			if (path.endsWith(".csv")) {
+				dataSet = new CsvDataSet(file);
 			} else {
 				throw new IllegalStateException(
-						"Only supports CSV data sets for the moment");
+						"Only supports CSV and SQL data sets for the moment");
 			}
-			dataSets.add(dataSet);
+			// Decorate the class and call addReplacementObject method
+			final ReplacementDataSet rDataSet = new ReplacementDataSet(dataSet);
+			final String content = new String(Files.readAllBytes(file.toPath()));
+			final String s = "\\$\\{sql\\(";
+			final String e = "\\)\\}";
+			// check de format ${sql()}
+			final Pattern pattern = Pattern.compile(s + ".*" + e);
+			final Matcher matcher = pattern.matcher(content);
+			// check all occurance
+			while (matcher.find()) {
+				int begin = matcher.start();
+				int end = matcher.end();
+				final String key = content.substring(begin, end);
+				final String sql = key.replaceAll(s, "").replaceAll(e, "");
+				final Statement statement = connection.createStatement();
+				final ResultSet resultSet = statement.executeQuery(sql);
+				resultSet.next();
+				final String value = resultSet.getString(1);
+				rDataSet.addReplacementObject(key, value);
+			}
+			dataSets.add(rDataSet);
 		}
 		logger.info("Arquivos a serem carregados " + dataSets);
-		final IDataSet dataSet = new CompositeDataSet(
-				dataSets.toArray(new IDataSet[dataSets.size()]));
+		final IDataSet[] a = new IDataSet[dataSets.size()];
+		final IDataSet dataSet = new CompositeDataSet(dataSets.toArray(a));
 		final IDatabaseConnection ddsc = new DatabaseConnection(connection);
 		final ITableFilter filter = new DatabaseSequenceFilter(ddsc);
 		final IDataSet fDataSet = new FilteredDataSet(filter, dataSet);
@@ -148,8 +198,8 @@ public class Inserter {
 	public void load(final IDataSet dataSet, final Connection connection)
 			throws Exception {
 		final IDatabaseConnection ddsc = new DatabaseConnection(connection);
-		ddsc.getConfig().setProperty(DatabaseConfig.PROPERTY_DATATYPE_FACTORY,
-				new HsqldbDataTypeFactory());
+		final DefaultDataTypeFactory factory = new HsqldbDataTypeFactory();
+		ddsc.getConfig().setProperty(PROPERTY_DATATYPE_FACTORY, factory);
 		DatabaseOperation.INSERT.execute(ddsc, dataSet);
 	}
 
