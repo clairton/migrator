@@ -4,12 +4,14 @@ import static javax.enterprise.inject.spi.CDI.current;
 import static liquibase.database.DatabaseFactory.getInstance;
 
 import java.sql.Connection;
-import java.util.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterDeploymentValidation;
 import javax.transaction.Transactional;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import liquibase.Liquibase;
 import liquibase.database.Database;
@@ -20,7 +22,7 @@ import liquibase.resource.ResourceAccessor;
 
 @ApplicationScoped
 public class Migrator implements javax.enterprise.inject.spi.Extension {
-	private final Logger logger = Logger.getLogger(getClass().getName());
+	private final Logger logger = LogManager.getLogger(getClass().getName());
 
 	private final String changelog = "db/changelogs/changelog-main.xml";
 

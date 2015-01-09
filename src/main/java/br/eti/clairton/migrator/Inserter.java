@@ -1,7 +1,7 @@
 package br.eti.clairton.migrator;
 
-import static org.dbunit.database.DatabaseConfig.PROPERTY_DATATYPE_FACTORY;
 import static java.nio.file.Files.walkFileTree;
+import static org.dbunit.database.DatabaseConfig.PROPERTY_DATATYPE_FACTORY;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,7 +17,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,6 +25,8 @@ import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dbunit.database.DatabaseConnection;
 import org.dbunit.database.DatabaseSequenceFilter;
 import org.dbunit.database.IDatabaseConnection;
@@ -45,7 +46,7 @@ import org.dbunit.operation.DatabaseOperation;
  */
 @Dependent
 public class Inserter {
-	private final Logger logger = Logger.getLogger(getClass().getName());
+	private final Logger logger = LogManager.getLogger(getClass().getName());
 	private final Connection connection;
 	private final Config config;
 
@@ -102,7 +103,8 @@ public class Inserter {
 		final Collection<String> files = Arrays.asList(annotation.value());
 		logger.info("Datasets a inserir " + files);
 		final Annotation qualifier = getQualifier(annotation.qualifier());
-		logger.info("Recuperando conexão com qualifier " + qualifier);
+		logger.info("Recuperando conexão com qualifier "
+				+ qualifier.annotationType().getSimpleName());
 		logger.info("Conexão recuperada " + connection);
 		load(files, connection);
 	}
@@ -153,7 +155,6 @@ public class Inserter {
 			}
 			dataSets.add(rDataSet);
 		}
-		logger.info("Arquivos a serem carregados " + dataSets);
 		final IDataSet[] a = new IDataSet[dataSets.size()];
 		final IDataSet dataSet = new CompositeDataSet(dataSets.toArray(a));
 		final IDatabaseConnection ddsc = new DatabaseConnection(connection);
