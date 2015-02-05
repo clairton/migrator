@@ -3,11 +3,14 @@ package br.eti.clairton.migrator;
 import static java.nio.file.Files.walkFileTree;
 import static org.dbunit.database.DatabaseConfig.PROPERTY_DATATYPE_FACTORY;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.annotation.Annotation;
+import java.net.URL;
 import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -17,6 +20,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -65,20 +69,27 @@ public class Inserter {
 	public void init() throws Exception {
 		if (config.isInsert()) {
 			logger.info("Carregando dataSets");
-			final Collection<String> files = new ArrayList<>();
-			walkFileTree(new File(config.getDataSetPath()).toPath(),
-					new SimpleFileVisitor<Path>() {
-						@Override
-						public FileVisitResult visitFile(final Path file,
-								final BasicFileAttributes attrs)
-								throws IOException {
-							if (file.toString().endsWith(".csv")) {
-								files.add(file.toAbsolutePath().toString());
+			final Collection<URL> files = new ArrayList<URL>();
+			final ClassLoader classLoader = getClass().getClassLoader();
+			final String path = config.getDataSetPath();
+			final Enumeration<URL> resources = classLoader.getResources(path);
+			while (resources.hasMoreElements()) {
+				final URL url = (URL) resources.nextElement();
+				walkFileTree(new File(url.toURI().getPath()).toPath(),
+						new SimpleFileVisitor<Path>() {
+							@Override
+							public FileVisitResult visitFile(final Path file,
+									final BasicFileAttributes attrs)
+									throws IOException {
+								if (file.toString().endsWith(".csv")) {
+									files.add(new File(file.toString()).toURI()
+											.toURL());
+								}
+								return FileVisitResult.CONTINUE;
 							}
-							return FileVisitResult.CONTINUE;
-						}
-					});
-			load(files, connection);
+						});
+			}
+			load(files.toArray(new URL[files.size()]), connection);
 		}
 	}
 
@@ -117,17 +128,33 @@ public class Inserter {
 	@Transactional
 	public void load(final Collection<String> files, final Connection connection)
 			throws Exception {
-		final Collection<IDataSet> dataSets = new ArrayList<>(files.size());
+		final Collection<URL> csvs = new ArrayList<URL>(files.size());
 		for (final String path : files) {
-			final File file = new File(path);
-			if (!path.endsWith(".csv")) {
+			final Enumeration<URL> resources = getClass().getClassLoader()
+					.getResources(path);
+			while (resources.hasMoreElements()) {
+				final URL url = (URL) resources.nextElement();
+				csvs.add(url);
+
+			}
+		}
+		load(csvs.toArray(new URL[csvs.size()]), connection);
+	}
+
+	@Transactional
+	public void load(final URL[] files, final Connection connection)
+			throws Exception {
+		final Collection<IDataSet> dataSets = new ArrayList<IDataSet>(
+				files.length);
+		for (final URL file : files) {
+			if (!file.toString().endsWith(".csv")) {
 				throw new IllegalStateException(
 						"Only supports CSV and SQL data sets for the moment");
 			}
 			// Decorate the class and call addReplacementObject method
 			final ReplacementDataSet rDataSet = new ReplacementDataSet(
 					new CsvDataSet(file));
-			final String content = new String(Files.readAllBytes(file.toPath()));
+			final String content = getString(file.openStream());
 			final String s = "\\$\\{sql\\(";
 			final String e = "\\)\\}";
 			// check de format ${sql()}
@@ -203,5 +230,31 @@ public class Inserter {
 				return type;
 			}
 		};
+	}
+
+	private static String getString(final InputStream is) {
+		BufferedReader br = null;
+		final StringBuilder sb = new StringBuilder();
+		String line;
+		try {
+			br = new BufferedReader(new InputStreamReader(is));
+			while ((line = br.readLine()) != null) {
+				sb.append(line);
+				sb.append("\n");
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return sb.toString();
+
 	}
 }

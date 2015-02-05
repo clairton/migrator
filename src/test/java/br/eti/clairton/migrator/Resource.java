@@ -9,8 +9,7 @@ import javax.inject.Singleton;
 
 @Singleton
 public class Resource {
-	private final Config config = new Config(true, true,
-			"src/test/resources/datasets") {
+	private final Config config = new Config(true, true, "datasets") {
 		private int calls = 0;
 
 		@Override
@@ -22,7 +21,7 @@ public class Resource {
 	private final Connection connection;
 
 	public Resource() throws Exception {
-		final String url = "jdbc:hsqldb:file:target/migrator;hsqldb.lock_file=false;shutdown=true;create=true";
+		final String url = "jdbc:hsqldb:file:target/database/migrator;hsqldb.lock_file=false;shutdown=true;create=true";
 		connection = DriverManager.getConnection(url, "sa", "");
 		connection.setAutoCommit(true);
 	}
