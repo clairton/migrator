@@ -77,12 +77,6 @@ public class Inserter {
 							}
 							return FileVisitResult.CONTINUE;
 						}
-
-						@Override
-						public FileVisitResult postVisitDirectory(Path dir,
-								IOException exc) throws IOException {
-							return FileVisitResult.CONTINUE;
-						}
 					});
 			load(files, connection);
 		}
@@ -125,16 +119,14 @@ public class Inserter {
 			throws Exception {
 		final Collection<IDataSet> dataSets = new ArrayList<>(files.size());
 		for (final String path : files) {
-			final IDataSet dataSet;
 			final File file = new File(path);
-			if (path.endsWith(".csv")) {
-				dataSet = new CsvDataSet(file);
-			} else {
+			if (!path.endsWith(".csv")) {
 				throw new IllegalStateException(
 						"Only supports CSV and SQL data sets for the moment");
 			}
 			// Decorate the class and call addReplacementObject method
-			final ReplacementDataSet rDataSet = new ReplacementDataSet(dataSet);
+			final ReplacementDataSet rDataSet = new ReplacementDataSet(
+					new CsvDataSet(file));
 			final String content = new String(Files.readAllBytes(file.toPath()));
 			final String s = "\\$\\{sql\\(";
 			final String e = "\\)\\}";
