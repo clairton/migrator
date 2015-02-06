@@ -51,22 +51,10 @@ import org.dbunit.operation.DatabaseOperation;
 @Dependent
 public class Inserter {
 	private final Logger logger = LogManager.getLogger(getClass().getName());
-	private final Connection connection;
-	private final Config config;
 
-	@Deprecated
-	protected Inserter() {
-		this(null, null);
-	}
-
-	@Inject
-	public Inserter(final Connection connection, final Config config) {
-		super();
-		this.connection = connection;
-		this.config = config;
-	}
-
-	public void init() throws Exception {
+	@Transactional
+	public void run(final Connection connection, final Config config)
+			throws Exception {
 		if (config.isInsert()) {
 			logger.info("Carregando dataSets");
 			final Collection<URL> files = new ArrayList<URL>();
