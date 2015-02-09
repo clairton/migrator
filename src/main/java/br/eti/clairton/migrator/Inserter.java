@@ -21,10 +21,9 @@ import java.util.Enumeration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
-//import javax.transaction.Transactional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,11 +44,10 @@ import org.dbunit.operation.DatabaseOperation;
  * 
  * @author Clairton Rodrigo Heinzen<clairton.rodrigo@gmail.com>
  */
-@Dependent
+@ApplicationScoped
 public class Inserter {
 	private final Logger logger = LogManager.getLogger(getClass().getName());
 
-//	@Transactional
 	public void run(final Connection connection, final Config config)
 			throws Exception {
 		if (config.isInsert()) {
@@ -102,7 +100,6 @@ public class Inserter {
 	 * @throws Exception
 	 *             caso ocorra um erro ao popular a dataBase
 	 */
-	// @Transactional
 	public void load(final DataSet annotation, final Connection connection)
 			throws Exception {
 		final Collection<String> files = Arrays.asList(annotation.value());
@@ -125,7 +122,6 @@ public class Inserter {
 	 * @throws Exception
 	 *             caso ocorra um erro ao popular a dataBase
 	 */
-	// @Transactional
 	public void load(final Collection<String> files, final Connection connection)
 			throws Exception {
 		final Collection<URL> csvs = new ArrayList<URL>(files.size());
@@ -141,7 +137,6 @@ public class Inserter {
 		load(csvs.toArray(new URL[csvs.size()]), connection);
 	}
 
-	// @Transactional
 	public void load(final URL[] files, final Connection connection)
 			throws Exception {
 		final Collection<IDataSet> dataSets = new ArrayList<IDataSet>(
@@ -179,7 +174,9 @@ public class Inserter {
 		final IDatabaseConnection ddsc = new DatabaseConnection(connection);
 		final ITableFilter filter = new DatabaseSequenceFilter(ddsc);
 		final IDataSet fDataSet = new FilteredDataSet(filter, dataSet);
+		connection.setAutoCommit(false);
 		load(fDataSet, connection);
+		connection.commit();
 	}
 
 	/**
@@ -192,7 +189,6 @@ public class Inserter {
 	 * @throws Exception
 	 *             caso ocorra algun problema
 	 */
-	// @Transactional
 	public void load(final String path, final Connection connection)
 			throws Exception {
 		final IDataSet dataSet = new org.dbunit.dataset.csv.CsvDataSet(
@@ -214,7 +210,6 @@ public class Inserter {
 	 * @throws Exception
 	 *             caso ocorra algun problema
 	 */
-	// @Transactional
 	public void load(final IDataSet dataSet, final Connection connection)
 			throws Exception {
 		final IDatabaseConnection ddsc = new DatabaseConnection(connection);

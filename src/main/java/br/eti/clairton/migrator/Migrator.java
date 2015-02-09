@@ -8,7 +8,6 @@ import java.sql.Connection;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterDeploymentValidation;
-//import javax.transaction.Transactional;
 
 import liquibase.Liquibase;
 import liquibase.database.Database;
@@ -32,10 +31,9 @@ public class Migrator implements javax.enterprise.inject.spi.Extension {
 		final Connection connection = current().select(Connection.class).get();
 		Config config = current().select(Config.class).get();
 		migrate(connection, config);
-		current().select(Inserter.class).get().run(connection, config);
+		new Inserter().run(connection, config);
 	}
 
-//	@Transactional
 	public void migrate(final Connection connection, final Config config) {
 		try {
 			final DatabaseConnection jdbcConnection = new JdbcConnection(
@@ -46,6 +44,7 @@ public class Migrator implements javax.enterprise.inject.spi.Extension {
 					getClass().getClassLoader());
 			liquibase = new Liquibase(config.getChangelogPath(),
 					resourceAccessor, database);
+			connection.setAutoCommit(false);
 			if (config.isDropAll()) {
 				logger.info("Deletando objetos");
 				liquibase.dropAll();
@@ -54,6 +53,7 @@ public class Migrator implements javax.enterprise.inject.spi.Extension {
 			logger.info("Rodando changesets");
 			liquibase.update(context);
 			logger.info("Aplicado changesets");
+			connection.commit();
 		} catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
