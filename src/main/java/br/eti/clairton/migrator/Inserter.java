@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.annotation.Annotation;
+import java.net.JarURLConnection;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.jar.JarEntry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,27 +49,39 @@ import org.dbunit.operation.DatabaseOperation;
 public class Inserter {
 	private final Logger logger = LogManager.getLogger(getClass().getName());
 
-	public void run(final Connection connection, final Config config)
-			throws Exception {
+	public void run(final Connection connection, final Config config,
+			final ClassLoader classLoader) throws Exception {
 		if (config.isInsert()) {
 			logger.info("Carregando dataSets");
 			final Collection<URL> files = new ArrayList<URL>();
-			final ClassLoader classLoader = getClass().getClassLoader();
 			final String path = config.getDataSetPath();
 			final Enumeration<URL> resources = classLoader.getResources(path);
 			while (resources != null && resources.hasMoreElements()) {
 				final URL url = resources.nextElement();
-				logger.info("Stream " + url);
-				final URI uri = url.toURI();
-				logger.info("URI " + uri);
-				final File file;
-				if (uri.getPath() == null) {
-					file = new File(url.toString());
+				if ("jar".equals(url.toURI().getScheme())) {
+					logger.info("Diretório" + url.getPath());
+					final JarURLConnection conn = (JarURLConnection) url
+							.openConnection();
+					final Enumeration<JarEntry> en = conn.getJarFile()
+							.entries();
+					final String mainEntryName = conn.getEntryName();
+					while (en.hasMoreElements()) {
+						final JarEntry entry = en.nextElement();
+						final String entryName = entry.getName();
+						if (entryName.startsWith(mainEntryName)
+								&& entryName.endsWith(".csv")) {
+							final String name = url.toURI()
+									+ entryName.replace(mainEntryName, "");
+							logger.info("Adicionando arquivo csv " + name);
+							URL u = new URL(name);
+							files.add(u);
+						}
+					}
 				} else {
-					file = new File(uri.getPath());
+					final File file = new File(url.getPath());
+					logger.info("Diretório" + file);
+					listFilesForFolder(file, files);
 				}
-				logger.info("Arquivo " + file);
-				listFilesForFolder(file, files);
 			}
 			load(files.toArray(new URL[files.size()]), connection);
 		}

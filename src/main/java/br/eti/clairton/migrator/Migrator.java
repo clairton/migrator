@@ -30,11 +30,12 @@ public class Migrator implements javax.enterprise.inject.spi.Extension {
 		logger.info("Iniciando migração do banco de dados");
 		final Connection connection = current().select(Connection.class).get();
 		Config config = current().select(Config.class).get();
-		migrate(connection, config);
-		new Inserter().run(connection, config);
+		final ClassLoader classLoader = getClass().getClassLoader();
+		run(connection, config, classLoader);
 	}
 
-	public void migrate(final Connection connection, final Config config) {
+	public void run(final Connection connection, final Config config,
+			final ClassLoader classLoader) {
 		try {
 			final DatabaseConnection jdbcConnection = new JdbcConnection(
 					connection);
@@ -54,6 +55,7 @@ public class Migrator implements javax.enterprise.inject.spi.Extension {
 			liquibase.update(context);
 			logger.info("Aplicado changesets");
 			connection.commit();
+			new Inserter().run(connection, config, classLoader);
 		} catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
