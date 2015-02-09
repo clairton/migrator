@@ -64,11 +64,16 @@ public class Inserter {
 			final String path = config.getDataSetPath();
 			final Enumeration<URL> resources = classLoader.getResources(path);
 			while (resources.hasMoreElements()) {
-				final URL url = (URL) resources.nextElement();
+				final URL url = resources.nextElement();
 				logger.info("Stream " + url);
 				final URI uri = url.toURI();
 				logger.info("URI " + uri);
-				final File file = new File(uri.getPath());
+				final File file;
+				if (uri.getPath() == null) {
+					file = new File(url.toString());
+				} else {
+					file = new File(uri.getPath());
+				}
 				logger.info("Arquivo " + file);
 				final FileVisitor<? super Path> visitor = new SimpleFileVisitor<Path>() {
 					@Override
