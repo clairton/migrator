@@ -9,8 +9,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.annotation.Annotation;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -63,19 +65,24 @@ public class Inserter {
 			final Enumeration<URL> resources = classLoader.getResources(path);
 			while (resources.hasMoreElements()) {
 				final URL url = (URL) resources.nextElement();
-				walkFileTree(new File(url.toURI().getPath()).toPath(),
-						new SimpleFileVisitor<Path>() {
-							@Override
-							public FileVisitResult visitFile(final Path file,
-									final BasicFileAttributes attrs)
-									throws IOException {
-								if (file.toString().endsWith(".csv")) {
-									files.add(new File(file.toString()).toURI()
-											.toURL());
-								}
-								return FileVisitResult.CONTINUE;
-							}
-						});
+				logger.info("Stream " + url);
+				final URI uri = url.toURI();
+				logger.info("URI " + uri);
+				final File file = new File(uri.getPath());
+				logger.info("Arquivo " + file);
+				final FileVisitor<? super Path> visitor = new SimpleFileVisitor<Path>() {
+					@Override
+					public FileVisitResult visitFile(final Path file,
+							final BasicFileAttributes attrs) throws IOException {
+						logger.info("Verificando arquivo " + file);
+						if (file.toString().endsWith(".csv")) {
+							logger.info("Adicionando arquivo csv " + file);
+							files.add(new File(file.toString()).toURI().toURL());
+						}
+						return FileVisitResult.CONTINUE;
+					}
+				};
+				walkFileTree(file.toPath(), visitor);
 			}
 			load(files.toArray(new URL[files.size()]), connection);
 		}
