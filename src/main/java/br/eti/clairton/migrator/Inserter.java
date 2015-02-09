@@ -1,6 +1,5 @@
 package br.eti.clairton.migrator;
 
-import static java.nio.file.Files.walkFileTree;
 import static org.dbunit.database.DatabaseConfig.PROPERTY_DATATYPE_FACTORY;
 
 import java.io.BufferedReader;
@@ -9,13 +8,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.annotation.Annotation;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -29,7 +24,7 @@ import java.util.regex.Pattern;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
-import javax.transaction.Transactional;
+//import javax.transaction.Transactional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -54,7 +49,7 @@ import org.dbunit.operation.DatabaseOperation;
 public class Inserter {
 	private final Logger logger = LogManager.getLogger(getClass().getName());
 
-	@Transactional
+//	@Transactional
 	public void run(final Connection connection, final Config config)
 			throws Exception {
 		if (config.isInsert()) {
@@ -63,7 +58,7 @@ public class Inserter {
 			final ClassLoader classLoader = getClass().getClassLoader();
 			final String path = config.getDataSetPath();
 			final Enumeration<URL> resources = classLoader.getResources(path);
-			while (resources.hasMoreElements()) {
+			while (resources != null && resources.hasMoreElements()) {
 				final URL url = resources.nextElement();
 				logger.info("Stream " + url);
 				final URI uri = url.toURI();
@@ -75,21 +70,26 @@ public class Inserter {
 					file = new File(uri.getPath());
 				}
 				logger.info("Arquivo " + file);
-				final FileVisitor<? super Path> visitor = new SimpleFileVisitor<Path>() {
-					@Override
-					public FileVisitResult visitFile(final Path file,
-							final BasicFileAttributes attrs) throws IOException {
-						logger.info("Verificando arquivo " + file);
-						if (file.toString().endsWith(".csv")) {
-							logger.info("Adicionando arquivo csv " + file);
-							files.add(new File(file.toString()).toURI().toURL());
-						}
-						return FileVisitResult.CONTINUE;
-					}
-				};
-				walkFileTree(file.toPath(), visitor);
+				listFilesForFolder(file, files);
 			}
 			load(files.toArray(new URL[files.size()]), connection);
+		}
+	}
+
+	private void listFilesForFolder(final File file, Collection<URL> files) {
+		if (file.isDirectory()) {
+			for (final File f : file.listFiles()) {
+				listFilesForFolder(f, files);
+			}
+		} else {
+			if (file.toString().endsWith(".csv")) {
+				logger.info("Adicionando arquivo csv " + file);
+				try {
+					files.add(new File(file.toString()).toURI().toURL());
+				} catch (MalformedURLException e) {
+					throw new RuntimeException(e);
+				}
+			}
 		}
 	}
 
@@ -102,7 +102,7 @@ public class Inserter {
 	 * @throws Exception
 	 *             caso ocorra um erro ao popular a dataBase
 	 */
-	@Transactional
+	// @Transactional
 	public void load(final DataSet annotation, final Connection connection)
 			throws Exception {
 		final Collection<String> files = Arrays.asList(annotation.value());
@@ -125,7 +125,7 @@ public class Inserter {
 	 * @throws Exception
 	 *             caso ocorra um erro ao popular a dataBase
 	 */
-	@Transactional
+	// @Transactional
 	public void load(final Collection<String> files, final Connection connection)
 			throws Exception {
 		final Collection<URL> csvs = new ArrayList<URL>(files.size());
@@ -141,7 +141,7 @@ public class Inserter {
 		load(csvs.toArray(new URL[csvs.size()]), connection);
 	}
 
-	@Transactional
+	// @Transactional
 	public void load(final URL[] files, final Connection connection)
 			throws Exception {
 		final Collection<IDataSet> dataSets = new ArrayList<IDataSet>(
@@ -192,7 +192,7 @@ public class Inserter {
 	 * @throws Exception
 	 *             caso ocorra algun problema
 	 */
-	@Transactional
+	// @Transactional
 	public void load(final String path, final Connection connection)
 			throws Exception {
 		final IDataSet dataSet = new org.dbunit.dataset.csv.CsvDataSet(
@@ -214,7 +214,7 @@ public class Inserter {
 	 * @throws Exception
 	 *             caso ocorra algun problema
 	 */
-	@Transactional
+	// @Transactional
 	public void load(final IDataSet dataSet, final Connection connection)
 			throws Exception {
 		final IDatabaseConnection ddsc = new DatabaseConnection(connection);

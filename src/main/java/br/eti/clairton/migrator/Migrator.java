@@ -8,7 +8,7 @@ import java.sql.Connection;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterDeploymentValidation;
-import javax.transaction.Transactional;
+//import javax.transaction.Transactional;
 
 import liquibase.Liquibase;
 import liquibase.database.Database;
@@ -35,7 +35,7 @@ public class Migrator implements javax.enterprise.inject.spi.Extension {
 		current().select(Inserter.class).get().run(connection, config);
 	}
 
-	@Transactional
+//	@Transactional
 	public void migrate(final Connection connection, final Config config) {
 		try {
 			final DatabaseConnection jdbcConnection = new JdbcConnection(
