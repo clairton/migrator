@@ -5,7 +5,6 @@ import static liquibase.database.DatabaseFactory.getInstance;
 
 import java.sql.Connection;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterDeploymentValidation;
 
@@ -19,7 +18,6 @@ import liquibase.resource.ResourceAccessor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-@ApplicationScoped
 public class Migrator implements javax.enterprise.inject.spi.Extension {
 	private final Logger logger = LogManager.getLogger(getClass().getName());
 
@@ -42,11 +40,11 @@ public class Migrator implements javax.enterprise.inject.spi.Extension {
 			final Database database = getInstance()
 					.findCorrectDatabaseImplementation(jdbcConnection);
 			final ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor(
-					getClass().getClassLoader());
+					classLoader);
 			liquibase = new Liquibase(config.getChangelogPath(),
 					resourceAccessor, database);
 			connection.setAutoCommit(false);
-			if (config.isDropAll()) {
+			if (config.isDrop()) {
 				logger.info("Deletando objetos");
 				liquibase.dropAll();
 			}

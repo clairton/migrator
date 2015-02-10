@@ -51,7 +51,7 @@ public class Inserter {
 
 	public void run(final Connection connection, final Config config,
 			final ClassLoader classLoader) throws Exception {
-		if (config.isInsert()) {
+		if (config.isPopulate()) {
 			logger.info("Carregando dataSets");
 			final Collection<URL> files = new ArrayList<URL>();
 			final String path = config.getDataSetPath();

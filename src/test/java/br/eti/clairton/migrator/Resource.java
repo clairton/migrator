@@ -9,11 +9,11 @@ import javax.inject.Singleton;
 
 @Singleton
 public class Resource {
-	private final Config config = new Config(true, true, "datasets") {
+	private final Config config = new Config("datasets") {
 		private int calls = 0;
 
 		@Override
-		public Boolean isDropAll() {
+		public Boolean isDrop() {
 			return calls++ > 1;
 		}
 	};
@@ -21,6 +21,7 @@ public class Resource {
 	private final Connection connection;
 
 	public Resource() throws Exception {
+		System.setProperty(Config.POPULATE, "true");
 		final String url = "jdbc:hsqldb:file:target/database/migrator;hsqldb.lock_file=false;shutdown=true;create=true";
 		connection = DriverManager.getConnection(url, "sa", "");
 		connection.setAutoCommit(true);

@@ -26,7 +26,7 @@ public class InserterInsideJar {
 				.getConnection(url, "sa", "");
 		connection.setAutoCommit(true);
 		final Migrator migrator = new Migrator();
-		final Config config = new Config(true, true, "datasets");
+		final Config config = new Config("datasets");
 		final ClassLoader classLoader = new ClassLoader(getClass()
 				.getClassLoader()) {
 			@Override
