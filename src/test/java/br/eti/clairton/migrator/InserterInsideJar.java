@@ -18,6 +18,10 @@ import java.util.Enumeration;
 import org.junit.Test;
 
 public class InserterInsideJar {
+	static {
+		System.setProperty(Config.DROP, "true");
+		System.setProperty(Config.POPULATE, "true");
+	}
 
 	@Test
 	public void testInsideJar() throws SQLException {
@@ -25,7 +29,6 @@ public class InserterInsideJar {
 		final Connection connection = DriverManager
 				.getConnection(url, "sa", "");
 		connection.setAutoCommit(true);
-		final Migrator migrator = new Migrator();
 		final Config config = new Config("datasets");
 		final ClassLoader classLoader = new ClassLoader(getClass()
 				.getClassLoader()) {
@@ -41,7 +44,9 @@ public class InserterInsideJar {
 				return Collections.enumeration(c);
 			}
 		};
-		migrator.run(connection, config, classLoader);
+		final Migrator migrator = new MigratorDefault(connection, config,
+				classLoader);
+		migrator.run();
 		final Statement statement = connection.createStatement();
 		final String sql = "SELECT COUNT(*) FROM aplicacoes Where nome='Jar'";
 		final ResultSet resultSet = statement.executeQuery(sql);
