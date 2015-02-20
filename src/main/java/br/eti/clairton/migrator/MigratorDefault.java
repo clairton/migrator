@@ -35,8 +35,7 @@ public class MigratorDefault implements Migrator {
 		this(connection, config, MigratorDefault.class.getClassLoader());
 	}
 
-	public MigratorDefault(final Connection connection, final Config config,
-			final ClassLoader classLoader) {
+	public MigratorDefault(final Connection connection, final Config config, final ClassLoader classLoader) {
 		this.connection = connection;
 		this.config = config;
 		this.classLoader = classLoader;
@@ -45,14 +44,10 @@ public class MigratorDefault implements Migrator {
 	@Override
 	public void run() {
 		try {
-			final DatabaseConnection jdbcConnection = new JdbcConnection(
-					connection);
-			final Database database = getInstance()
-					.findCorrectDatabaseImplementation(jdbcConnection);
-			final ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor(
-					classLoader);
-			final Liquibase liquibase = new Liquibase(
-					config.getChangelogPath(), resourceAccessor, database);
+			final DatabaseConnection jdbcConnection = new JdbcConnection(connection);
+			final Database database = getInstance().findCorrectDatabaseImplementation(jdbcConnection);
+			final ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor( classLoader);
+			final Liquibase liquibase = new Liquibase(config.getChangelogPath(), resourceAccessor, database);
 			connection.setAutoCommit(false);
 			if (config.isDrop()) {
 				try {
@@ -76,10 +71,9 @@ public class MigratorDefault implements Migrator {
 				connection.setAutoCommit(false);
 			}
 			final String context = "";
-			logger.info("Rodando changesets " + config.getChangelogPath());
+			logger.info("Rodando changesets {}", config.getChangelogPath());
 			liquibase.update(context);
-			logger.info("Changesets " + config.getChangelogPath()
-					+ " aplicados com sucesso");
+			logger.info("Changesets {} aplicados com sucesso", config.getChangelogPath());
 			connection.commit();
 			new Inserter().run(connection, config, classLoader);
 		} catch (Exception e) {
