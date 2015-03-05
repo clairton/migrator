@@ -49,37 +49,41 @@ import org.dbunit.operation.DatabaseOperation;
 public class Inserter {
 	private final Logger logger = LogManager.getLogger(getClass().getName());
 
-	public void run(final Connection connection, final Config config,
-			final ClassLoader classLoader) throws Exception {
+	public void run(final Connection connection, final Config config, final ClassLoader classLoader) throws Exception {
 		if (config.isPopulate()) {
 			logger.info("Carregando dataSets");
 			final Collection<URL> files = new ArrayList<URL>();
 			final String path = config.getDataSetPath();
 			final Enumeration<URL> resources = classLoader.getResources(path);
 			while (resources != null && resources.hasMoreElements()) {
-				final URL url = resources.nextElement();
-				if ("jar".equals(url.toURI().getScheme())) {
-					logger.info("Diretório" + url.getPath());
-					final JarURLConnection conn = (JarURLConnection) url
-							.openConnection();
-					final Enumeration<JarEntry> en = conn.getJarFile()
-							.entries();
+				URL url = resources.nextElement();
+				String scheme = url.toURI().getScheme();
+				if("vfs".equals(scheme)){
+					/*
+					 * ao rodar no WildFly ele devolve uma instancia de VirtualFileURLConnection
+					 * e não de um JarURLConnection, por isso faz essa conversão
+					 */
+					url = new URL("jar:file:"+url.getPath().replace(".jar/", ".jar!/"));
+					scheme = url.toURI().getScheme();
+				}				
+				if ("jar".equals(scheme)) {
+					logger.info("Jar " + url.getPath());
+					final JarURLConnection conn = (JarURLConnection) url.openConnection();
+					final Enumeration<JarEntry> en = conn.getJarFile().entries();
 					final String mainEntryName = conn.getEntryName();
 					while (en.hasMoreElements()) {
 						final JarEntry entry = en.nextElement();
 						final String entryName = entry.getName();
-						if (entryName.startsWith(mainEntryName)
-								&& entryName.endsWith(".csv")) {
-							final String name = url.toURI()
-									+ entryName.replace(mainEntryName, "");
-							logger.info("Adicionando arquivo csv " + name);
+						if (entryName.startsWith(mainEntryName) && entryName.endsWith(".csv")) {
+							final String name = url.toURI() + entryName.replace(mainEntryName, "");
+							logger.info("Adicionando arquivo csv {}", name);
 							URL u = new URL(name);
 							files.add(u);
 						}
 					}
 				} else {
 					final File file = new File(url.getPath());
-					logger.info("Diretório" + file);
+					logger.info("Diretório " + file);
 					listFilesForFolder(file, files);
 				}
 			}
@@ -118,8 +122,7 @@ public class Inserter {
 		final Collection<String> files = Arrays.asList(annotation.value());
 		logger.info("Datasets a inserir " + files);
 		final Annotation qualifier = getQualifier(annotation.qualifier());
-		logger.info("Recuperando conexão com qualifier "
-				+ qualifier.annotationType().getSimpleName());
+		logger.info("Recuperando conexão com qualifier {}", qualifier.annotationType().getSimpleName());
 		logger.info("Conexão recuperada " + connection);
 		load(files, connection);
 	}
@@ -139,8 +142,8 @@ public class Inserter {
 			throws Exception {
 		final Collection<URL> csvs = new ArrayList<URL>(files.size());
 		for (final String path : files) {
-			final Enumeration<URL> resources = getClass().getClassLoader()
-					.getResources(path);
+			final ClassLoader cl = getClass().getClassLoader();
+			final Enumeration<URL> resources = cl.getResources(path);
 			while (resources.hasMoreElements()) {
 				final URL url = (URL) resources.nextElement();
 				csvs.add(url);
@@ -160,8 +163,7 @@ public class Inserter {
 						"Only supports CSV and SQL data sets for the moment");
 			}
 			// Decorate the class and call addReplacementObject method
-			final ReplacementDataSet rDataSet = new ReplacementDataSet(
-					new CsvDataSet(file));
+			final ReplacementDataSet rDataSet = new ReplacementDataSet(new CsvDataSet(file));
 			final String content = getString(file.openStream());
 			final String s = "\\$\\{sql\\(";
 			final String e = "\\)\\}";
