@@ -18,7 +18,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,12 +61,11 @@ public class Inserter {
 				URL url = resources.nextElement();
 				String scheme = url.toURI().getScheme();
 				if("vfs".equals(scheme)){
-					/*
-					 * ao rodar no WildFly ele devolve uma instancia de VirtualFileURLConnection
-					 * e não de um JarURLConnection, por isso faz essa conversão
-					 */
-					url = new URL("jar:file:"+url.getPath().replace(".jar/", ".jar!/"));
-					scheme = url.toURI().getScheme();
+					final InputStream inputStream = url.openStream();
+					if(inputStream instanceof JarInputStream){						
+						final JarInputStream jarStream = (JarInputStream) inputStream;
+						files.addAll(loadJar(jarStream, classLoader, path));
+					}
 				}				
 				if ("jar".equals(scheme)) {
 					logger.info("Jar " + url.getPath());
@@ -89,6 +90,22 @@ public class Inserter {
 			}
 			load(files.toArray(new URL[files.size()]), connection);
 		}
+	}
+	
+	public List<URL> loadJar(final JarInputStream jarStream,final ClassLoader classLoader, final String path) throws IOException{
+		final List<URL> files = new ArrayList<URL>();
+		while (true) {
+			final JarEntry entry = jarStream.getNextJarEntry();
+			if(entry == null){
+				break;
+			}else{
+				if(entry.toString().endsWith(".csv")){									
+					final URL file = classLoader.getResource(path+"/"+entry);
+					files.add(file);
+				}
+			}
+		}
+		return files;
 	}
 
 	private void listFilesForFolder(final File file, Collection<URL> files) {
