@@ -58,8 +58,8 @@ public class Inserter {
 			final String path = config.getDataSetPath();
 			final Enumeration<URL> resources = classLoader.getResources(path);
 			while (resources != null && resources.hasMoreElements()) {
-				URL url = resources.nextElement();
-				String scheme = url.toURI().getScheme();
+				final URL url = resources.nextElement();
+				final String scheme = url.toURI().getScheme();
 				if("vfs".equals(scheme)){
 					final InputStream inputStream = url.openStream();
 					if(inputStream instanceof JarInputStream){						
@@ -101,6 +101,7 @@ public class Inserter {
 			}else{
 				if(entry.toString().endsWith(".csv")){									
 					final URL file = classLoader.getResource(path+"/"+entry);
+					logger.info("Adicionando arquivo csv {}", file);
 					files.add(file);
 				}
 			}
@@ -118,7 +119,7 @@ public class Inserter {
 				logger.info("Adicionando arquivo csv " + file);
 				try {
 					files.add(new File(file.toString()).toURI().toURL());
-				} catch (MalformedURLException e) {
+				} catch (final MalformedURLException e) {
 					throw new RuntimeException(e);
 				}
 			}
