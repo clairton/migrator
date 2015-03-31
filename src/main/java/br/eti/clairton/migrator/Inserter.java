@@ -207,9 +207,7 @@ public class Inserter {
 		final IDatabaseConnection ddsc = new DatabaseConnection(connection);
 		final ITableFilter filter = new DatabaseSequenceFilter(ddsc);
 		final IDataSet fDataSet = new FilteredDataSet(filter, dataSet);
-		connection.setAutoCommit(false);
 		load(fDataSet, connection);
-		connection.commit();
 	}
 
 	/**

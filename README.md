@@ -22,7 +22,10 @@ id,nome
 ```
 Na intancia de config pode-se configurar se o liquibase ira deletar o banco antes de aplicar as alterações, e
 se será populado o banco com os changesets. O comportamente pode ser alterado setando as propriedades
-"br.eti.clairton.migrator.populate" e "br.eti.clairton.migrator.drop", ou especializando o Config e personalizando os métodos "isDrop" e "isPopulate".
+"br.eti.clairton.migrator.populate" e "br.eti.clairton.migrator.drop", 
+ou especializando o Config e personalizando os métodos "isDrop" e "isPopulate".
+
+Necessitará fornecer uma instancia de Connection com qualifier @Default.
 
 Download através do maven, dependência:
 ```xml
