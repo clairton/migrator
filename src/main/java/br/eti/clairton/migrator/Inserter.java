@@ -53,7 +53,7 @@ public class Inserter {
 
 	public void run(final Connection connection, final Config config, final ClassLoader classLoader) throws Exception {
 		if (config.isPopulate()) {
-			logger.info("Carregando dataSets");
+			logger.info("Carregando dataSets em {}", config.getDataSetPath());
 			final Collection<URL> files = new ArrayList<URL>();
 			final String path = config.getDataSetPath();
 			final Enumeration<URL> resources = classLoader.getResources(path);
@@ -138,7 +138,7 @@ public class Inserter {
 	public void load(final DataSet annotation, final Connection connection)
 			throws Exception {
 		final Collection<String> files = Arrays.asList(annotation.value());
-		logger.info("Datasets a inserir " + files);
+		logger.info("Datasets a inserir {}", files);
 		final Annotation qualifier = getQualifier(annotation.qualifier());
 		logger.info("Recuperando conexão com qualifier {}", qualifier.annotationType().getSimpleName());
 		logger.info("Conexão recuperada " + connection);
@@ -180,6 +180,7 @@ public class Inserter {
 				throw new IllegalStateException(
 						"Only supports CSV and SQL data sets for the moment");
 			}
+			logger.info("Adicionando dataset {}", file.toString());
 			// Decorate the class and call addReplacementObject method
 			final ReplacementDataSet rDataSet = new ReplacementDataSet(new CsvDataSet(file));
 			final String content = getString(file.openStream());
