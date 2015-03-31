@@ -66,8 +66,7 @@ public class Inserter {
 						final JarInputStream jarStream = (JarInputStream) inputStream;
 						files.addAll(loadJar(jarStream, classLoader, path));
 					}
-				}				
-				if ("jar".equals(scheme)) {
+				}else if ("jar".equals(scheme)) {
 					logger.info("Jar " + url.getPath());
 					final JarURLConnection conn = (JarURLConnection) url.openConnection();
 					final Enumeration<JarEntry> en = conn.getJarFile().entries();
