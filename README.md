@@ -1,4 +1,4 @@
-# Migrator
+# Migrator[![Build Status](https://travis-ci.org/clairton/migrator.svg?branch=master)](https://travis-ci.org/clairton/migrator)
 Migração de dados e população de dados iniciais, usando respectivamente liquibase e dbunit. 
 O processo é executado através de uma extensão do CDI. É necessário fornecer uma instancia @Defaul
 de br.eti.clairton.migrator.Config, como por exemplo:
