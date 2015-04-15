@@ -5,8 +5,8 @@ de br.eti.clairton.migrator.Config, como por exemplo:
 ```java
 @Produces
 public Config getConfig(){
-  System.setProperty(br.eti.clairton.migrator.Config.POPULATE, "true");
-  System.setProperty(br.eti.clairton.migrator.Config.DROP, "true");
+  System.setProperty("br.eti.clairton.migrator.update", "true");
+  System.setProperty("br.eti.clairton.migrator.drop", "true");
   final String diretorioDataSets = "resources/datasets";
   return new Config(diretorioDataSets);
 }	
