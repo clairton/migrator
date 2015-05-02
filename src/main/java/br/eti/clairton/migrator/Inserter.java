@@ -76,7 +76,7 @@ public class Inserter {
 						final String entryName = entry.getName();
 						if (entryName.startsWith(mainEntryName) && entryName.endsWith(".csv")) {
 							final String name = url.toURI() + entryName.replace(mainEntryName, "");
-							logger.info("Adicionando arquivo csv {}", name);
+							logger.debug("Adicionando arquivo csv {}", name);
 							URL u = new URL(name);
 							files.add(u);
 						}
@@ -100,7 +100,7 @@ public class Inserter {
 			}else{
 				if(entry.toString().endsWith(".csv")){									
 					final URL file = classLoader.getResource(path+"/"+entry);
-					logger.info("Adicionando arquivo csv {}", file);
+					logger.debug("Adicionando arquivo csv {}", file);
 					files.add(file);
 				}
 			}
@@ -115,7 +115,7 @@ public class Inserter {
 			}
 		} else {
 			if (file.toString().endsWith(".csv")) {
-				logger.info("Adicionando arquivo csv " + file);
+				logger.debug("Adicionando arquivo csv " + file);
 				try {
 					files.add(new File(file.toString()).toURI().toURL());
 				} catch (final MalformedURLException e) {
@@ -226,7 +226,7 @@ public class Inserter {
 				new File(path));
 		logger.info("Inserindo datasets: ");
 		for (final String table : dataSet.getTableNames()) {
-			logger.info("     " + table);
+			logger.debug("     " + table);
 		}
 		load(dataSet, connection);
 	}
