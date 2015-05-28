@@ -1,12 +1,12 @@
-# Migrator[![Build Status](https://travis-ci.org/clairton/migrator.svg?branch=master)](https://travis-ci.org/clairton/migrator)
+# migrator[![Build Status](https://drone.io/github.com/clairton/migrator/status.png)](https://drone.io/github.com/clairton/migrator/latest)
 Migração de dados e população de dados iniciais, usando respectivamente liquibase e dbunit. 
 O processo é executado através de uma extensão do CDI. É necessário fornecer uma instancia @Defaul
 de br.eti.clairton.migrator.Config, como por exemplo:
 ```java
 @Produces
 public Config getConfig(){
-  System.setProperty(br.eti.clairton.migrator.Config.POPULATE, "true");
-  System.setProperty(br.eti.clairton.migrator.Config.DROP, "true");
+  System.setProperty("br.eti.clairton.migrator.populate", "true");
+  System.setProperty("br.eti.clairton.migrator.drop", "true");
   final String diretorioDataSets = "resources/datasets";
   return new Config(diretorioDataSets);
 }	
