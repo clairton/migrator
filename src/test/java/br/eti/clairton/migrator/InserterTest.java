@@ -65,16 +65,13 @@ public class InserterTest {
 
 	@Test
 	public void testVfs() throws Exception {
-		final ClassLoader classLoader = new ClassLoader(getClass()
-				.getClassLoader()) {
+		final ClassLoader classLoader = new ClassLoader(getClass().getClassLoader()) {
 			@Override
-			public Enumeration<URL> getResources(String name)
-					throws IOException {
+			public Enumeration<URL> getResources(String name) throws IOException {
 				try {
 					// file:/home/maxicreditosc/.m2/repository/br/com/maxicredito/auth-api/1.0.0-SNAPSHOT/auth-api-1.0.0-SNAPSHOT.jar/datasets/
 					final File jar = new File("src/test/resources/test.jar");
-					final String file = "jar:file:" + jar.getAbsolutePath()
-							+ "!/datasets/";
+					final String file = "jar:file:" + jar.getAbsolutePath() + "!/datasets/";
 					final URL url = new URL(file);
 					final VirtualFile vf = VFS.getChild(url.toURI());
 					final Collection<URL> c = Arrays.asList(vf.toURL());

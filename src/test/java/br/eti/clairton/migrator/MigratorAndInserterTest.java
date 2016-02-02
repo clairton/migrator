@@ -18,6 +18,11 @@ import org.junit.runner.RunWith;
 
 @RunWith(CdiJUnit4Runner.class)
 public class MigratorAndInserterTest {
+	static {
+		System.setProperty(Config.DROP, "true");
+		System.setProperty(Config.POPULATE, "true");
+	}
+
 	private @Inject Connection connection;
 
 	@Test

@@ -6,6 +6,10 @@ import java.sql.Connection;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import liquibase.Liquibase;
 import liquibase.database.Database;
@@ -14,12 +18,9 @@ import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import liquibase.resource.ResourceAccessor;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 @Dependent
 public class MigratorDefault implements Migrator {
-	private final Logger logger = LogManager.getLogger(getClass().getName());
+	private static final Logger logger = LogManager.getLogger(MigratorDefault.class);
 
 	private final Connection connection;
 	private final Config config;
@@ -31,12 +32,11 @@ public class MigratorDefault implements Migrator {
 	}
 
 	@Inject
-	public MigratorDefault(final Connection connection, final Config config) {
+	public MigratorDefault(final @NotNull Connection connection, final @NotNull Config config) {
 		this(connection, config, MigratorDefault.class.getClassLoader());
 	}
 
-	public MigratorDefault(final Connection connection, final Config config,
-			final ClassLoader classLoader) {
+	public MigratorDefault(final @NotNull Connection connection, final @NotNull Config config, final @NotNull ClassLoader classLoader) {
 		this.connection = connection;
 		this.config = config;
 		this.classLoader = classLoader;
@@ -55,8 +55,7 @@ public class MigratorDefault implements Migrator {
 				try {
 					logger.info("Desligando dataBase change lock");
 					/*
-					 * desliga o lock ao subir em ambiente de teste ou
-					 * desenvolvimento
+					 * desliga o lock ao subir em ambiente de teste ou desenvolvimento
 					 */
 					final String command = "UPDATE databasechangeloglock SET locked=false";
 					connection.createStatement().executeUpdate(command);
@@ -77,7 +76,7 @@ public class MigratorDefault implements Migrator {
 			new Inserter().run(connection, config, classLoader);
 			connection.commit();
 	        connection.setAutoCommit(autoCommit);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new IllegalStateException(e);
 		}
 	}
