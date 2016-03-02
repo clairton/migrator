@@ -1,5 +1,7 @@
 package br.eti.clairton.migrator;
 
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.valueOf;
 import static java.lang.System.getProperty;
 
 import javax.enterprise.inject.Vetoed;
@@ -15,7 +17,7 @@ public class Config {
 		this(dataSetPath, "db/changelogs/changelog-main.xml");
 	}
 
-	public Config(String dataSetPath, String changelogPath) {
+	public Config(final String dataSetPath, final String changelogPath) {
 		super();
 		this.dataSetPath = dataSetPath;
 		this.changelogPath = changelogPath;
@@ -24,18 +26,18 @@ public class Config {
 	public Boolean isDrop() {
 		final String property = getProperty(DROP);
 		if (property == null) {
-			return Boolean.FALSE;
+			return FALSE;
 		} else {
-			return Boolean.valueOf(property);
+			return valueOf(property);
 		}
 	}
 
 	public Boolean isPopulate() {
 		final String property = getProperty(POPULATE);
 		if (property == null) {
-			return Boolean.FALSE;
+			return FALSE;
 		} else {
-			return Boolean.valueOf(property);
+			return valueOf(property);
 		}
 	}
 
