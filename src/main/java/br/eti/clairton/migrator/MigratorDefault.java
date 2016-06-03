@@ -29,12 +29,22 @@ public class MigratorDefault implements Migrator {
 
 	@Deprecated
 	protected MigratorDefault() {
-		this(null, null, null);
+		this(null, null, null, null);
+	}
+
+	@Deprecated
+	public MigratorDefault(final @NotNull Connection connection, final @NotNull Config config) {
+		this(connection, config, new Inserter(), MigratorDefault.class.getClassLoader());
 	}
 
 	@Inject
 	public MigratorDefault(final @NotNull Connection connection, final @NotNull Config config, final Inserter inserter) {
 		this(connection, config, inserter, MigratorDefault.class.getClassLoader());
+	}
+	
+	@Deprecated
+	public MigratorDefault(final @NotNull Connection connection, final @NotNull Config config, final @NotNull ClassLoader classLoader) {
+		this(connection, config, new Inserter(), classLoader);
 	}
 
 	public MigratorDefault(final @NotNull Connection connection, final @NotNull Config config, final Inserter inserter, final @NotNull ClassLoader classLoader) {
