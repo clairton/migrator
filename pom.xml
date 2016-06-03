@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>br.eti.clairton</groupId>
 	<artifactId>migrator</artifactId>
-	<version>1.1.0</version>
+	<version>1.2.0</version>
 	<dependencies>
 		<dependency>
 			<groupId>org.dbunit</groupId>
@@ -163,8 +163,8 @@
 				<version>3.1</version>
 				<configuration>
 					<encoding>UTF-8</encoding>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>1.7</source>
+					<target>1.7</target>
 				</configuration>
 			</plugin>
 			<plugin>

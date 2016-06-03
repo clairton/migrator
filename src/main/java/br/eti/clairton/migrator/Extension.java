@@ -1,5 +1,7 @@
 package br.eti.clairton.migrator;
 
+import static org.apache.logging.log4j.LogManager.getLogger;
+
 import java.lang.annotation.Annotation;
 import java.util.Set;
 
@@ -11,7 +13,6 @@ import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.util.AnnotationLiteral;
 
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
@@ -20,7 +21,7 @@ import org.apache.logging.log4j.Logger;
  * @author Clairton Rodrigo Heinzen<clairton.rodrigo@gmail.com>
  */
 public class Extension implements javax.enterprise.inject.spi.Extension {
-	private static final Logger logger = LogManager.getLogger(Extension.class);
+	private static final Logger logger = getLogger(Extension.class);
 	private final Annotation any = new AnnotationLiteral<Any>() {
 		private static final long serialVersionUID = -8700665898396680284L;
 	};

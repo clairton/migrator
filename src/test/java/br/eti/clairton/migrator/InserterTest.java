@@ -104,7 +104,8 @@ public class InserterTest {
 
 	private void run(final ClassLoader cl) throws Exception {
 		final Config config = new Config("datasets");
-		final Migrator migrator = new MigratorDefault(connection, config, cl);
+		final Inserter inserter = new Inserter();
+		final Migrator migrator = new MigratorDefault(connection, config, inserter, cl);
 		migrator.run();
 		final Statement statement = connection.createStatement();
 		final String sql = "SELECT COUNT(*) FROM aplicacoes Where nome='Jar'";

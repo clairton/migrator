@@ -1,6 +1,10 @@
 package br.eti.clairton.migrator;
 
+import static java.util.Arrays.asList;
+import static java.util.regex.Pattern.compile;
+import static org.apache.logging.log4j.LogManager.getLogger;
 import static org.dbunit.database.DatabaseConfig.PROPERTY_DATATYPE_FACTORY;
+import static org.dbunit.operation.DatabaseOperation.INSERT;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,7 +19,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
@@ -24,11 +27,10 @@ import java.util.jar.JarInputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dbunit.database.DatabaseConnection;
 import org.dbunit.database.DatabaseSequenceFilter;
@@ -40,16 +42,15 @@ import org.dbunit.dataset.ReplacementDataSet;
 import org.dbunit.dataset.datatype.DefaultDataTypeFactory;
 import org.dbunit.dataset.filter.ITableFilter;
 import org.dbunit.ext.hsqldb.HsqldbDataTypeFactory;
-import org.dbunit.operation.DatabaseOperation;
 
 /**
  * Carrega os dados no banco de dados.
  * 
  * @author Clairton Rodrigo Heinzen<clairton.rodrigo@gmail.com>
  */
-@ApplicationScoped
+@Dependent
 public class Inserter {
-	private final Logger logger = LogManager.getLogger(getClass().getName());
+	private final Logger logger = getLogger(getClass().getName());
 
 	public void run(final Connection connection, final Config config, final ClassLoader classLoader) throws Exception {
 		if (config.isPopulate()) {
@@ -134,9 +135,8 @@ public class Inserter {
 	 * @throws Exception
 	 *             caso ocorra um erro ao popular a dataBase
 	 */
-	public void load(final DataSet annotation, final Connection connection)
-			throws Exception {
-		final Collection<String> files = Arrays.asList(annotation.value());
+	public void load(final DataSet annotation, final Connection connection)throws Exception {
+		final Collection<String> files = asList(annotation.value());
 		logger.info("Datasets a inserir {}", files);
 		final Annotation qualifier = getQualifier(annotation.qualifier());
 		logger.info("Recuperando conexão com qualifier {}", qualifier.annotationType().getSimpleName());
@@ -155,8 +155,7 @@ public class Inserter {
 	 * @throws Exception
 	 *             caso ocorra um erro ao popular a dataBase
 	 */
-	public void load(final Collection<String> files, final Connection connection)
-			throws Exception {
+	public void load(final Collection<String> files, final Connection connection)throws Exception {
 		final Collection<URL> csvs = new ArrayList<URL>(files.size());
 		for (final String path : files) {
 			final ClassLoader cl = getClass().getClassLoader();
@@ -170,14 +169,11 @@ public class Inserter {
 		load(csvs.toArray(new URL[csvs.size()]), connection);
 	}
 
-	public void load(final URL[] files, final Connection connection)
-			throws Exception {
-		final Collection<IDataSet> dataSets = new ArrayList<IDataSet>(
-				files.length);
+	public void load(final URL[] files, final Connection connection)throws Exception {
+		final Collection<IDataSet> dataSets = new ArrayList<IDataSet>(files.length);
 		for (final URL file : files) {
 			if (!file.toString().endsWith(".csv")) {
-				throw new IllegalStateException(
-						"Only supports CSV and SQL data sets for the moment");
+				throw new IllegalStateException("Only supports CSV and SQL data sets for the moment");
 			}
 			logger.info("Adicionando dataset {}", file.toString());
 			// Decorate the class and call addReplacementObject method
@@ -186,7 +182,7 @@ public class Inserter {
 			final String s = "\\$\\{sql\\(";
 			final String e = "\\)\\}";
 			// check de format ${sql()}
-			final Pattern pattern = Pattern.compile(s + ".*" + e);
+			final Pattern pattern = compile(s + ".*" + e);
 			final Matcher matcher = pattern.matcher(content);
 			// check all occurance
 			while (matcher.find()) {
@@ -220,10 +216,8 @@ public class Inserter {
 	 * @throws Exception
 	 *             caso ocorra algun problema
 	 */
-	public void load(final String path, final Connection connection)
-			throws Exception {
-		final IDataSet dataSet = new org.dbunit.dataset.csv.CsvDataSet(
-				new File(path));
+	public void load(final String path, final Connection connection)throws Exception {
+		final IDataSet dataSet = new org.dbunit.dataset.csv.CsvDataSet(new File(path));
 		logger.info("Inserindo datasets: ");
 		for (final String table : dataSet.getTableNames()) {
 			logger.debug("     " + table);
@@ -241,12 +235,25 @@ public class Inserter {
 	 * @throws Exception
 	 *             caso ocorra algun problema
 	 */
-	public void load(final IDataSet dataSet, final Connection connection)
-			throws Exception {
+	public void load(final IDataSet dataSet, final Connection connection) throws Exception {
 		final IDatabaseConnection ddsc = new DatabaseConnection(connection);
 		final DefaultDataTypeFactory factory = new HsqldbDataTypeFactory();
 		ddsc.getConfig().setProperty(PROPERTY_DATATYPE_FACTORY, factory);
-		DatabaseOperation.INSERT.execute(ddsc, dataSet);
+		insert(dataSet, ddsc);
+	}
+
+	/**
+	 * Faz o insert do dataset na conexão passados como parametro.
+	 * 
+	 * @param dataSet
+	 *            com os dados
+	 * @param connection
+	 *            conexão com banco de dados
+	 * @throws Exception
+	 *             caso ocorra algun problema
+	 */
+	public void insert(final IDataSet dataSet, final IDatabaseConnection connection) throws Exception {
+		INSERT.execute(connection, dataSet);
 	}
 
 	private <T extends Annotation> Annotation getQualifier(final Class<T> type) {
@@ -281,6 +288,5 @@ public class Inserter {
 			}
 		}
 		return sb.toString();
-
 	}
 }

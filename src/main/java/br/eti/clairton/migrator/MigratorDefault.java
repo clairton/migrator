@@ -1,6 +1,7 @@
 package br.eti.clairton.migrator;
 
 import static liquibase.database.DatabaseFactory.getInstance;
+import static org.apache.logging.log4j.LogManager.getLogger;
 
 import java.sql.Connection;
 
@@ -8,7 +9,6 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import liquibase.Liquibase;
@@ -20,26 +20,28 @@ import liquibase.resource.ResourceAccessor;
 
 @Dependent
 public class MigratorDefault implements Migrator {
-	private static final Logger logger = LogManager.getLogger(MigratorDefault.class);
+	private static final Logger logger = getLogger(MigratorDefault.class);
 
 	private final Connection connection;
 	private final Config config;
 	private final ClassLoader classLoader;
+	private final Inserter inserter;
 
 	@Deprecated
 	protected MigratorDefault() {
-		this(null, null);
+		this(null, null, null);
 	}
 
 	@Inject
-	public MigratorDefault(final @NotNull Connection connection, final @NotNull Config config) {
-		this(connection, config, MigratorDefault.class.getClassLoader());
+	public MigratorDefault(final @NotNull Connection connection, final @NotNull Config config, final Inserter inserter) {
+		this(connection, config, inserter, MigratorDefault.class.getClassLoader());
 	}
 
-	public MigratorDefault(final @NotNull Connection connection, final @NotNull Config config, final @NotNull ClassLoader classLoader) {
+	public MigratorDefault(final @NotNull Connection connection, final @NotNull Config config, final Inserter inserter, final @NotNull ClassLoader classLoader) {
 		this.connection = connection;
 		this.config = config;
 		this.classLoader = classLoader;
+		this.inserter = inserter;
 	}
 
 	@Override
@@ -73,7 +75,7 @@ public class MigratorDefault implements Migrator {
 			logger.info("Rodando changesets {}", config.getChangelogPath());
 			liquibase.update(context);
 			logger.info("Changesets {} aplicados com sucesso", config.getChangelogPath());
-			new Inserter().run(connection, config, classLoader);
+			inserter.run(connection, config, classLoader);
 			connection.commit();
 	        connection.setAutoCommit(autoCommit);
 		} catch (final Exception e) {
