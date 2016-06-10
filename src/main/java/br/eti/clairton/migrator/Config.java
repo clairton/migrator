@@ -11,6 +11,7 @@ public class Config {
 	public static final String POPULATE = "br.eti.clairton.migrator.populate";
 	public static final String DROP = "br.eti.clairton.migrator.drop";
 	private final String dataSetPath;
+	private final String schema;
 	private final String changelogPath;
 
 	public Config(final String dataSetPath) {
@@ -18,9 +19,14 @@ public class Config {
 	}
 
 	public Config(final String dataSetPath, final String changelogPath) {
+		this(dataSetPath, changelogPath, "public");
+	}
+	
+	public Config(final String dataSetPath, final String changelogPath, final String schema) {
 		super();
 		this.dataSetPath = dataSetPath;
 		this.changelogPath = changelogPath;
+		this.schema = schema;
 	}
 
 	public Boolean isDrop() {
@@ -47,5 +53,9 @@ public class Config {
 
 	public String getChangelogPath() {
 		return changelogPath;
+	}
+	
+	public String getSchema() {
+		return schema;
 	}
 }

@@ -11,6 +11,7 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.logging.log4j.Logger;
 
+import liquibase.CatalogAndSchema;
 import liquibase.Liquibase;
 import liquibase.database.Database;
 import liquibase.database.DatabaseConnection;
@@ -59,13 +60,14 @@ public class MigratorDefault implements Migrator {
 		try {
 			final DatabaseConnection jdbcConnection = new JdbcConnection(connection);
 			final Database database = getInstance().findCorrectDatabaseImplementation(jdbcConnection);
+			database.setDefaultSchemaName(config.getSchema());
 			final ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor(classLoader);
 			final Liquibase liquibase = new Liquibase(config.getChangelogPath(), resourceAccessor, database);
 			final boolean autoCommit = connection.getAutoCommit();
 			connection.setAutoCommit(false);
 			if (config.isDrop()) {
 				try {
-					logger.info("Desligando dataBase change lock");
+					logger.info("Desligando dataBase changelock");
 					/*
 					 * desliga o lock ao subir em ambiente de teste ou desenvolvimento
 					 */
@@ -79,7 +81,8 @@ public class MigratorDefault implements Migrator {
 					connection.setAutoCommit(false);
 				}
 				logger.info("Deletando objetos");
-				liquibase.dropAll();
+				final CatalogAndSchema schemas = new CatalogAndSchema(null, config.getSchema());
+				liquibase.dropAll(schemas);
 			}
 			final String context = "";
 			logger.info("Rodando changesets {}", config.getChangelogPath());

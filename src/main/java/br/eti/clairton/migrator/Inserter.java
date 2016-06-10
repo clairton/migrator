@@ -88,7 +88,7 @@ public class Inserter {
 					listFilesForFolder(file, files);
 				}
 			}
-			load(files.toArray(new URL[files.size()]), connection);
+			load(files.toArray(new URL[files.size()]), connection, config.getSchema());
 		}
 	}
 	
@@ -135,13 +135,13 @@ public class Inserter {
 	 * @throws Exception
 	 *             caso ocorra um erro ao popular a dataBase
 	 */
-	public void load(final DataSet annotation, final Connection connection)throws Exception {
+	public void load(final DataSet annotation, final Connection connection, final String schema)throws Exception {
 		final Collection<String> files = asList(annotation.value());
 		logger.info("Datasets a inserir {}", files);
 		final Annotation qualifier = getQualifier(annotation.qualifier());
 		logger.info("Recuperando conexão com qualifier {}", qualifier.annotationType().getSimpleName());
 		logger.info("Conexão recuperada " + connection);
-		load(files, connection);
+		load(files, connection, schema);
 	}
 
 	/**
@@ -155,7 +155,7 @@ public class Inserter {
 	 * @throws Exception
 	 *             caso ocorra um erro ao popular a dataBase
 	 */
-	public void load(final Collection<String> files, final Connection connection)throws Exception {
+	public void load(final Collection<String> files, final Connection connection, final String schema)throws Exception {
 		final Collection<URL> csvs = new ArrayList<URL>(files.size());
 		for (final String path : files) {
 			final ClassLoader cl = getClass().getClassLoader();
@@ -166,10 +166,10 @@ public class Inserter {
 
 			}
 		}
-		load(csvs.toArray(new URL[csvs.size()]), connection);
+		load(csvs.toArray(new URL[csvs.size()]), connection, schema);
 	}
 
-	public void load(final URL[] files, final Connection connection)throws Exception {
+	public void load(final URL[] files, final Connection connection, final String schema)throws Exception {
 		final Collection<IDataSet> dataSets = new ArrayList<IDataSet>(files.length);
 		for (final URL file : files) {
 			if (!file.toString().endsWith(".csv")) {
@@ -203,7 +203,7 @@ public class Inserter {
 		final IDatabaseConnection ddsc = new DatabaseConnection(connection);
 		final ITableFilter filter = new DatabaseSequenceFilter(ddsc);
 		final IDataSet fDataSet = new FilteredDataSet(filter, dataSet);
-		load(fDataSet, connection);
+		load(fDataSet, connection, schema);
 	}
 
 	/**
@@ -216,13 +216,13 @@ public class Inserter {
 	 * @throws Exception
 	 *             caso ocorra algun problema
 	 */
-	public void load(final String path, final Connection connection)throws Exception {
+	public void load(final String path, final Connection connection, final String schema)throws Exception {
 		final IDataSet dataSet = new org.dbunit.dataset.csv.CsvDataSet(new File(path));
 		logger.info("Inserindo datasets: ");
 		for (final String table : dataSet.getTableNames()) {
 			logger.debug("     " + table);
 		}
-		load(dataSet, connection);
+		load(dataSet, connection, schema);
 	}
 
 	/**
@@ -235,8 +235,8 @@ public class Inserter {
 	 * @throws Exception
 	 *             caso ocorra algun problema
 	 */
-	public void load(final IDataSet dataSet, final Connection connection) throws Exception {
-		final IDatabaseConnection ddsc = new DatabaseConnection(connection);
+	public void load(final IDataSet dataSet, final Connection connection, final String schema) throws Exception {
+		final IDatabaseConnection ddsc = new DatabaseConnection(connection, schema);
 		final DefaultDataTypeFactory factory = new HsqldbDataTypeFactory();
 		ddsc.getConfig().setProperty(PROPERTY_DATATYPE_FACTORY, factory);
 		insert(dataSet, ddsc);
