@@ -23,7 +23,8 @@ public class MigratorAndInserterTest {
 		System.setProperty(Config.POPULATE, "true");
 	}
 
-	private @Inject Connection connection;
+	@Inject 
+	private Connection connection;
 
 	@Test
 	public void testRun() throws SQLException {

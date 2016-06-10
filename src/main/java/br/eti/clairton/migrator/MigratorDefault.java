@@ -1,5 +1,7 @@
 package br.eti.clairton.migrator;
 
+import static java.lang.Boolean.FALSE;
+import static java.lang.String.format;
 import static liquibase.database.DatabaseFactory.getInstance;
 import static org.apache.logging.log4j.LogManager.getLogger;
 
@@ -64,7 +66,11 @@ public class MigratorDefault implements Migrator {
 			final ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor(classLoader);
 			final Liquibase liquibase = new Liquibase(config.getChangelogPath(), resourceAccessor, database);
 			final boolean autoCommit = connection.getAutoCommit();
-			connection.setAutoCommit(false);
+			connection.setAutoCommit(FALSE);
+			try{
+				//create schema, if already exist does not a problem
+				connection.createStatement().executeQuery(format("CREATE SCHEMA %s;", config.getSchema()));
+			}catch(final Exception e){}
 			if (config.isDrop()) {
 				try {
 					logger.info("Desligando dataBase changelock");
@@ -78,7 +84,7 @@ public class MigratorDefault implements Migrator {
 				} catch (final Exception e) {
 					connection.rollback();
 				} finally {
-					connection.setAutoCommit(false);
+					connection.setAutoCommit(FALSE);
 				}
 				logger.info("Deletando objetos");
 				final CatalogAndSchema schemas = new CatalogAndSchema(null, config.getSchema());
