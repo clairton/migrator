@@ -3,9 +3,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
-	<changeSet
-		author="Clairton Rodrigo Heinzen clairton dot rodrigo at gmail dot com"
-		id="1.0.0">
+	<changeSet author="Clairton Rodrigo Heinzen clairton dot rodrigo at gmail dot com" id="1.0.0">
 		<createTable tableName="aplicacoes">
 			<column name="id" type="bigint" autoIncrement="true">
 				<constraints primaryKey="true" primaryKeyName="aplicacao_pkey"

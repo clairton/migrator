@@ -18,22 +18,18 @@
 			</exclusions>
 		</dependency>
 
-		<!-- Inicio das dependencias liquibase -->
-		<!-- Não é utilizada versão -> http://www.hascode.com/2014/07/java-ee-7-database-migrations-with-liquibase-and-wildfly/ -->
 		<dependency>
 			<groupId>org.liquibase</groupId>
 			<artifactId>liquibase-core</artifactId>
-			<version>3.1.1</version>
+			<version>3.5.1</version>
 			<scope>compile</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>com.mattbertolini</groupId>
 			<artifactId>liquibase-slf4j</artifactId>
 			<version>1.2.1</version>
 			<scope>compile</scope>
 		</dependency>
-		<!-- Fim das dependencias liquibase -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
