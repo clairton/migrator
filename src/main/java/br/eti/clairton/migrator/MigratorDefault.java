@@ -62,7 +62,9 @@ public class MigratorDefault implements Migrator {
 		try {
 			final DatabaseConnection jdbcConnection = new JdbcConnection(connection);
 			final Database database = getInstance().findCorrectDatabaseImplementation(jdbcConnection);
-			database.setDefaultSchemaName(config.getSchema());
+			if(config.getSchema() != null && !config.getSchema().isEmpty()){
+				database.setDefaultSchemaName(config.getSchema());
+			}
 			final ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor(classLoader);
 			final Liquibase liquibase = new Liquibase(config.getChangelogPath(), resourceAccessor, database);
 			final boolean autoCommit = connection.getAutoCommit();
@@ -87,8 +89,12 @@ public class MigratorDefault implements Migrator {
 					connection.setAutoCommit(FALSE);
 				}
 				logger.info("Deletando objetos");
-				final CatalogAndSchema schemas = new CatalogAndSchema(null, config.getSchema());
-				liquibase.dropAll(schemas);
+				if(config.getSchema() != null && !config.getSchema().isEmpty()){
+					final CatalogAndSchema schemas = new CatalogAndSchema(null, config.getSchema());					
+					liquibase.dropAll(schemas);
+				} else {					
+					liquibase.dropAll();
+				}
 			}
 			final String context = "";
 			logger.info("Rodando changesets {}", config.getChangelogPath());
