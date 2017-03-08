@@ -63,6 +63,7 @@ public class MigratorDefault implements Migrator {
 			final DatabaseConnection jdbcConnection = new JdbcConnection(connection);
 			final Database database = getInstance().findCorrectDatabaseImplementation(jdbcConnection);
 			if(config.getSchema() != null && !config.getSchema().isEmpty()){
+				logger.info("Setando o esquema padrão para {}", config.getSchema());
 				database.setDefaultSchemaName(config.getSchema());
 			}
 			final ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor(classLoader);
