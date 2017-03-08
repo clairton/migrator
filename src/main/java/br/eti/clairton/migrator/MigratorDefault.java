@@ -65,6 +65,8 @@ public class MigratorDefault implements Migrator {
 			if(config.getSchema() != null && !config.getSchema().isEmpty()){
 				logger.info("Setando o esquema padrão para {}", config.getSchema());
 				database.setDefaultSchemaName(config.getSchema());
+			} else {
+				logger.info("Não foi setado o esquema padrão");				
 			}
 			final ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor(classLoader);
 			final Liquibase liquibase = new Liquibase(config.getChangelogPath(), resourceAccessor, database);
