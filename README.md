@@ -31,17 +31,6 @@ Download através do maven, dependência:
 <dependency>
 	<groupId>br.eti.clairton</groupId>
     <artifactId>migrator</artifactId>
-	<version>0.1.0</version>
+	<version>1.4.0</version>
 </dependency>
-```
-E adicionar o repositório
-```xml
-<repository>
-	<id>mvn-repo-releases</id>
-	<url>https://raw.github.com/clairton/mvn-repo/releases</url>
-</repository>
-<repository>
-	<id>mvn-repo-snapshots</id>
-	<url>https://raw.github.com/clairton/mvn-repo/snapshots</url>
-</repository>
 ```
