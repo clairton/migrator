@@ -46,7 +46,7 @@ import org.dbunit.ext.hsqldb.HsqldbDataTypeFactory;
 /**
  * Carrega os dados no banco de dados.
  * 
- * @author Clairton Rodrigo Heinzen<clairton.rodrigo@gmail.com>
+ * @author Clairton Rodrigo Heinzen clairton.rodrigo@gmail.com
  */
 @Dependent
 public class Inserter {
@@ -127,11 +127,14 @@ public class Inserter {
 	}
 
 	/**
-	 * Carrega os arquivos passados como parametro. Utiliza o
-	 * {@link EntityManager} com qualificador {@link Default}.
+	 * Carrega os arquivos passados como parametro. Utiliza o EntityManager com qualificador {@link Default}.
 	 * 
 	 * @param annotation
 	 *            marcacao de dataSet
+	 * @param connection
+	 *            connection to load datasets
+	 * @param schema
+	 *            schema to load datasets
 	 * @throws Exception
 	 *             caso ocorra um erro ao popular a dataBase
 	 */
@@ -145,13 +148,14 @@ public class Inserter {
 	}
 
 	/**
-	 * Carrega os arquivos passados como parametro. Utiliza o
-	 * {@link EntityManager} com qualificador {@link Default}.
+	 * Carrega os arquivos passados como parametro.
 	 * 
 	 * @param files
 	 *            arquivos a serem carregados
 	 * @param connection
 	 *            conexão
+	 * @param schema
+	 *            schema to load datasets
 	 * @throws Exception
 	 *             caso ocorra um erro ao popular a dataBase
 	 */
@@ -213,6 +217,8 @@ public class Inserter {
 	 *            onde estão os arquivos
 	 * @param connection
 	 *            conexão com banco de dados
+	 * @param schema
+	 *            schema to load datasets
 	 * @throws Exception
 	 *             caso ocorra algun problema
 	 */
@@ -232,6 +238,8 @@ public class Inserter {
 	 *            com os dados
 	 * @param connection
 	 *            conexão com banco de dados
+	 * @param schema
+	 *            schema to load datasets
 	 * @throws Exception
 	 *             caso ocorra algun problema
 	 */

@@ -18,7 +18,7 @@ import org.apache.logging.log4j.Logger;
 /**
  * Extensão para migrar o banco de dados
  * 
- * @author Clairton Rodrigo Heinzen<clairton.rodrigo@gmail.com>
+ * @author Clairton Rodrigo Heinzen clairton.rodrigo@gmail.com
  */
 public class Extension implements javax.enterprise.inject.spi.Extension {
 	private static final Logger logger = getLogger(Extension.class);

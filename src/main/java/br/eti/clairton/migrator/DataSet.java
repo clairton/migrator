@@ -18,7 +18,7 @@ import javax.sql.DataSource;
 /**
  * Annotação para configurar as fixtures que seram utilizadas no test.
  * 
- * @author Clairton Rodrigo Heinzen<clairton.rodrigo@gmail.com>
+ * @author Clairton Rodrigo Heinzen clairton.rodrigo@gmail.com
  */
 @Retention(RUNTIME)
 @Target({ TYPE, METHOD })

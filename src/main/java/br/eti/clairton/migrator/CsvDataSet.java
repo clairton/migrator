@@ -20,7 +20,7 @@ import org.dbunit.dataset.csv.CsvParserImpl;
 /**
  * Single {@link IDataSet} csv.
  * 
- * @author Clairton Rodrigo Heinzen<clairton.rodrigo@gmail.com>
+ * @author Clairton Rodrigo Heinzen clairton.rodrigo@gmail.com
  */
 public class CsvDataSet extends CachedDataSet implements IDataSet {
 	/**
