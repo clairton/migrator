@@ -1,8 +1,9 @@
 package br.eti.clairton.migrator;
 
 import static java.util.Arrays.asList;
+import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.INFO;
 import static java.util.regex.Pattern.compile;
-import static org.apache.logging.log4j.LogManager.getLogger;
 import static org.dbunit.database.DatabaseConfig.PROPERTY_DATATYPE_FACTORY;
 import static org.dbunit.operation.DatabaseOperation.INSERT;
 
@@ -24,6 +25,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,7 +33,6 @@ import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 
-import org.apache.logging.log4j.Logger;
 import org.dbunit.database.DatabaseConnection;
 import org.dbunit.database.DatabaseSequenceFilter;
 import org.dbunit.database.IDatabaseConnection;
@@ -50,11 +51,11 @@ import org.dbunit.ext.hsqldb.HsqldbDataTypeFactory;
  */
 @Dependent
 public class Inserter {
-	private final Logger logger = getLogger(getClass().getName());
+	private static final Logger logger = Logger.getLogger(Inserter.class.getSimpleName());
 
 	public void run(final Connection connection, final Config config, final ClassLoader classLoader) throws Exception {
 		if (config.isPopulate()) {
-			logger.info("Carregando dataSets em {}", config.getDataSetPath());
+			logger.log(INFO, "Carregando dataSets em {}", config.getDataSetPath());
 			final Collection<URL> files = new ArrayList<URL>();
 			final String path = config.getDataSetPath();
 			final Enumeration<URL> resources = classLoader.getResources(path);
@@ -68,7 +69,7 @@ public class Inserter {
 						files.addAll(loadJar(jarStream, classLoader, path));
 					}
 				}else if ("jar".equals(scheme)) {
-					logger.info("Jar " + url.getPath());
+					logger.log(INFO,"Jar " + url.getPath());
 					final JarURLConnection conn = (JarURLConnection) url.openConnection();
 					final Enumeration<JarEntry> en = conn.getJarFile().entries();
 					final String mainEntryName = conn.getEntryName();
@@ -77,14 +78,14 @@ public class Inserter {
 						final String entryName = entry.getName();
 						if (entryName.startsWith(mainEntryName) && entryName.endsWith(".csv")) {
 							final String name = url.toURI() + entryName.replace(mainEntryName, "");
-							logger.debug("Adicionando arquivo csv {}", name);
+							logger.log(FINE, "Adicionando arquivo csv {}", name);
 							URL u = new URL(name);
 							files.add(u);
 						}
 					}
 				} else {
 					final File file = new File(url.getPath());
-					logger.info("Diretório " + file);
+					logger.log(INFO,"Diretório " + file);
 					listFilesForFolder(file, files);
 				}
 			}
@@ -101,7 +102,7 @@ public class Inserter {
 			}else{
 				if(entry.toString().endsWith(".csv")){									
 					final URL file = classLoader.getResource(path+"/"+entry);
-					logger.debug("Adicionando arquivo csv {}", file);
+					logger.log(FINE, "Adicionando arquivo csv {}", file);
 					files.add(file);
 				}
 			}
@@ -116,7 +117,7 @@ public class Inserter {
 			}
 		} else {
 			if (file.toString().endsWith(".csv")) {
-				logger.debug("Adicionando arquivo csv " + file);
+				logger.log(FINE,"Adicionando arquivo csv " + file);
 				try {
 					files.add(new File(file.toString()).toURI().toURL());
 				} catch (final MalformedURLException e) {
@@ -140,10 +141,10 @@ public class Inserter {
 	 */
 	public void load(final DataSet annotation, final Connection connection, final String schema)throws Exception {
 		final Collection<String> files = asList(annotation.value());
-		logger.info("Datasets a inserir {}", files);
+		logger.log(INFO,"Datasets a inserir {}", files);
 		final Annotation qualifier = getQualifier(annotation.qualifier());
-		logger.info("Recuperando conexão com qualifier {}", qualifier.annotationType().getSimpleName());
-		logger.info("Conexão recuperada " + connection);
+		logger.log(INFO,"Recuperando conexão com qualifier {}", qualifier.annotationType().getSimpleName());
+		logger.log(INFO,"Conexão recuperada " + connection);
 		load(files, connection, schema);
 	}
 
@@ -179,7 +180,7 @@ public class Inserter {
 			if (!file.toString().endsWith(".csv")) {
 				throw new IllegalStateException("Only supports CSV and SQL data sets for the moment");
 			}
-			logger.info("Adicionando dataset {}", file.toString());
+			logger.log(INFO,"Adicionando dataset {}", file.toString());
 			// Decorate the class and call addReplacementObject method
 			final ReplacementDataSet rDataSet = new ReplacementDataSet(new CsvDataSet(file));
 			final String content = getString(file.openStream());
@@ -224,9 +225,9 @@ public class Inserter {
 	 */
 	public void load(final String path, final Connection connection, final String schema)throws Exception {
 		final IDataSet dataSet = new org.dbunit.dataset.csv.CsvDataSet(new File(path));
-		logger.info("Inserindo datasets: ");
+		logger.log(INFO,"Inserindo datasets: ");
 		for (final String table : dataSet.getTableNames()) {
-			logger.debug("     " + table);
+			logger.log(FINE,"     " + table);
 		}
 		load(dataSet, connection, schema);
 	}

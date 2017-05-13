@@ -2,16 +2,16 @@ package br.eti.clairton.migrator;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.String.format;
+import static java.util.logging.Level.INFO;
+import static java.util.logging.Logger.getLogger;
 import static liquibase.database.DatabaseFactory.getInstance;
-import static org.apache.logging.log4j.LogManager.getLogger;
 
 import java.sql.Connection;
+import java.util.logging.Logger;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-
-import org.apache.logging.log4j.Logger;
 
 import liquibase.CatalogAndSchema;
 import liquibase.Liquibase;
@@ -23,7 +23,7 @@ import liquibase.resource.ResourceAccessor;
 
 @Dependent
 public class MigratorDefault implements Migrator {
-	private static final Logger logger = getLogger(MigratorDefault.class);
+	private static final Logger logger = getLogger(MigratorDefault.class.getSimpleName());
 
 	private final Connection connection;
 	private final Config config;
@@ -63,10 +63,10 @@ public class MigratorDefault implements Migrator {
 			final DatabaseConnection jdbcConnection = new JdbcConnection(connection);
 			final Database database = getInstance().findCorrectDatabaseImplementation(jdbcConnection);
 			if(config.getSchema() != null && !config.getSchema().isEmpty()){
-				logger.info("Setando o esquema padrão para {}", config.getSchema());
+				logger.log(INFO,"Setando o esquema padrão para {}", config.getSchema());
 				database.setDefaultSchemaName(config.getSchema());
 			} else {
-				logger.info("Não foi setado o esquema padrão");				
+				logger.log(INFO,"Não foi setado o esquema padrão");				
 			}
 			final ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor(classLoader);
 			final Liquibase liquibase = new Liquibase(config.getChangelogPath(), resourceAccessor, database);
@@ -78,20 +78,20 @@ public class MigratorDefault implements Migrator {
 			}catch(final Exception e){}
 			if (config.isDrop()) {
 				try {
-					logger.info("Desligando dataBase changelock");
+					logger.log(INFO,"Desligando dataBase changelock");
 					/*
 					 * desliga o lock ao subir em ambiente de teste ou desenvolvimento
 					 */
 					final String command = "UPDATE databasechangeloglock SET locked=false";
 					connection.createStatement().executeUpdate(command);
 					connection.commit();
-					logger.info("DataBase change lock desligado");
+					logger.log(INFO,"DataBase change lock desligado");
 				} catch (final Exception e) {
 					connection.rollback();
 				} finally {
 					connection.setAutoCommit(FALSE);
 				}
-				logger.info("Deletando objetos");
+				logger.log(INFO,"Deletando objetos");
 				if(config.getSchema() != null && !config.getSchema().isEmpty()){
 					final CatalogAndSchema schemas = new CatalogAndSchema(null, config.getSchema());					
 					liquibase.dropAll(schemas);
@@ -100,9 +100,9 @@ public class MigratorDefault implements Migrator {
 				}
 			}
 			final String context = "";
-			logger.info("Rodando changesets {}", config.getChangelogPath());
+			logger.log(INFO,"Rodando changesets {}", config.getChangelogPath());
 			liquibase.update(context);
-			logger.info("Changesets {} aplicados com sucesso", config.getChangelogPath());
+			logger.log(INFO,"Changesets {} aplicados com sucesso", config.getChangelogPath());
 			inserter.run(connection, config, classLoader);
 			connection.commit();
 	        connection.setAutoCommit(autoCommit);
