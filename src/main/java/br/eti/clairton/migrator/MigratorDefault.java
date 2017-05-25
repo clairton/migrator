@@ -77,20 +77,7 @@ public class MigratorDefault implements Migrator {
 				connection.createStatement().executeQuery(format("CREATE SCHEMA %s;", config.getSchema()));
 			}catch(final Exception e){}
 			if (config.isDrop()) {
-				try {
-					logger.log(INFO,"Desligando dataBase changelock");
-					/*
-					 * desliga o lock ao subir em ambiente de teste ou desenvolvimento
-					 */
-					final String command = "UPDATE databasechangeloglock SET locked=false";
-					connection.createStatement().executeUpdate(command);
-					connection.commit();
-					logger.log(INFO,"DataBase change lock desligado");
-				} catch (final Exception e) {
-					connection.rollback();
-				} finally {
-					connection.setAutoCommit(FALSE);
-				}
+				turnoff();
 				logger.log(INFO,"Deletando objetos");
 				if(config.getSchema() != null && !config.getSchema().isEmpty()){
 					final CatalogAndSchema schemas = new CatalogAndSchema(null, config.getSchema());					
@@ -107,7 +94,29 @@ public class MigratorDefault implements Migrator {
 			connection.commit();
 	        connection.setAutoCommit(autoCommit);
 		} catch (final Exception e) {
+            turnoff();
 			throw new IllegalStateException(e);
 		}
+	}
+	
+	protected void turnoff(){
+	  try {
+          logger.log(INFO,"Desligando dataBase changelock");
+          /*
+           * desliga o lock ao subir em ambiente de teste ou desenvolvimento
+           */
+          final String command = "UPDATE databasechangeloglock SET locked=false";
+          connection.createStatement().executeUpdate(command);
+          connection.commit();
+          logger.log(INFO,"DataBase change lock desligado");
+      } catch (final Exception e) {
+          try{
+              connection.rollback();
+          }catch (final Exception e2) {}
+      } finally {
+          try{          
+              connection.setAutoCommit(FALSE);
+          }catch (final Exception e) {}
+      }
 	}
 }
