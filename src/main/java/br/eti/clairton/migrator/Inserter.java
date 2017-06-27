@@ -52,10 +52,19 @@ import org.dbunit.ext.hsqldb.HsqldbDataTypeFactory;
 @Dependent
 public class Inserter {
 	private static final Logger logger = Logger.getLogger(Inserter.class.getSimpleName());
+	private final DefaultDataTypeFactory factory;
+
+	public Inserter() {
+	  this(new HsqldbDataTypeFactory());
+	}
+
+	public Inserter(final DefaultDataTypeFactory factory) {
+	  this.factory = factory;
+	}
 
 	public void run(final Connection connection, final Config config, final ClassLoader classLoader) throws Exception {
 		if (config.isPopulate()) {
-			logger.log(INFO, "Carregando dataSets em {}", config.getDataSetPath());
+			logger.log(INFO, "Carregando dataSets em {0}", config.getDataSetPath());
 			final Collection<URL> files = new ArrayList<URL>();
 			final String path = config.getDataSetPath();
 			final Enumeration<URL> resources = classLoader.getResources(path);
@@ -78,14 +87,14 @@ public class Inserter {
 						final String entryName = entry.getName();
 						if (entryName.startsWith(mainEntryName) && entryName.endsWith(".csv")) {
 							final String name = url.toURI() + entryName.replace(mainEntryName, "");
-							logger.log(FINE, "Adicionando arquivo csv {}", name);
+							logger.log(FINE, "Adicionando arquivo csv {0}", name);
 							URL u = new URL(name);
 							files.add(u);
 						}
 					}
 				} else {
 					final File file = new File(url.getPath());
-					logger.log(INFO,"Diretório " + file);
+					logger.log(INFO,"Diretório {0}", file);
 					listFilesForFolder(file, files);
 				}
 			}
@@ -102,7 +111,7 @@ public class Inserter {
 			}else{
 				if(entry.toString().endsWith(".csv")){									
 					final URL file = classLoader.getResource(path+"/"+entry);
-					logger.log(FINE, "Adicionando arquivo csv {}", file);
+					logger.log(FINE, "Adicionando arquivo csv {0}", file);
 					files.add(file);
 				}
 			}
@@ -117,7 +126,7 @@ public class Inserter {
 			}
 		} else {
 			if (file.toString().endsWith(".csv")) {
-				logger.log(FINE,"Adicionando arquivo csv " + file);
+				logger.log(FINE,"Adicionando arquivo csv {0}", file);
 				try {
 					files.add(new File(file.toString()).toURI().toURL());
 				} catch (final MalformedURLException e) {
@@ -141,10 +150,10 @@ public class Inserter {
 	 */
 	public void load(final DataSet annotation, final Connection connection, final String schema)throws Exception {
 		final Collection<String> files = asList(annotation.value());
-		logger.log(INFO,"Datasets a inserir {}", files);
+		logger.log(INFO,"Datasets a inserir {0}", files);
 		final Annotation qualifier = getQualifier(annotation.qualifier());
-		logger.log(INFO,"Recuperando conexão com qualifier {}", qualifier.annotationType().getSimpleName());
-		logger.log(INFO,"Conexão recuperada " + connection);
+		logger.log(INFO,"Recuperando conexão com qualifier {0}", qualifier.annotationType().getSimpleName());
+		logger.log(INFO,"Conexão recuperada {0}", connection);
 		load(files, connection, schema);
 	}
 
@@ -180,7 +189,7 @@ public class Inserter {
 			if (!file.toString().endsWith(".csv")) {
 				throw new IllegalStateException("Only supports CSV and SQL data sets for the moment");
 			}
-			logger.log(INFO,"Adicionando dataset {}", file.toString());
+			logger.log(INFO,"Adicionando dataset {0}", file.toString());
 			// Decorate the class and call addReplacementObject method
 			final ReplacementDataSet rDataSet = new ReplacementDataSet(new CsvDataSet(file));
 			final String content = getString(file.openStream());
@@ -227,7 +236,7 @@ public class Inserter {
 		final IDataSet dataSet = new org.dbunit.dataset.csv.CsvDataSet(new File(path));
 		logger.log(INFO,"Inserindo datasets: ");
 		for (final String table : dataSet.getTableNames()) {
-			logger.log(FINE,"     " + table);
+			logger.log(FINE,"     {0}", table);
 		}
 		load(dataSet, connection, schema);
 	}
@@ -246,7 +255,6 @@ public class Inserter {
 	 */
 	public void load(final IDataSet dataSet, final Connection connection, final String schema) throws Exception {
 		final IDatabaseConnection ddsc = new DatabaseConnection(connection, schema);
-		final DefaultDataTypeFactory factory = new HsqldbDataTypeFactory();
 		ddsc.getConfig().setProperty(PROPERTY_DATATYPE_FACTORY, factory);
 		insert(dataSet, ddsc);
 	}

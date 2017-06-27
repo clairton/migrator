@@ -63,7 +63,7 @@ public class MigratorDefault implements Migrator {
 			final DatabaseConnection jdbcConnection = new JdbcConnection(connection);
 			final Database database = getInstance().findCorrectDatabaseImplementation(jdbcConnection);
 			if(config.getSchema() != null && !config.getSchema().isEmpty()){
-				logger.log(INFO,"Setando o esquema padrão para {}", config.getSchema());
+				logger.log(INFO,"Setando o esquema padrão para {0}", config.getSchema());
 				database.setDefaultSchemaName(config.getSchema());
 			} else {
 				logger.log(INFO,"Não foi setado o esquema padrão");				
@@ -87,9 +87,9 @@ public class MigratorDefault implements Migrator {
 				}
 			}
 			final String context = "";
-			logger.log(INFO,"Rodando changesets {}", config.getChangelogPath());
+			logger.log(INFO,"Rodando changesets {0}", config.getChangelogPath());
 			liquibase.update(context);
-			logger.log(INFO,"Changesets {} aplicados com sucesso", config.getChangelogPath());
+			logger.log(INFO,"Changesets {0} aplicados com sucesso", config.getChangelogPath());
 			inserter.run(connection, config, classLoader);
 			connection.commit();
 	        connection.setAutoCommit(autoCommit);

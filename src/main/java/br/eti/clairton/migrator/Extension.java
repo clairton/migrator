@@ -31,7 +31,7 @@ public class Extension implements javax.enterprise.inject.spi.Extension {
 	public void init(final @Observes AfterDeploymentValidation adv, final BeanManager manager) throws Exception {
 		logger.log(INFO, "Iniciando Migrator Extension");
 		final Set<Bean<?>> beans = manager.getBeans(Migrator.class, any);
-		logger.log(INFO, "{} Migrator(s) encontrados", beans.size());
+		logger.log(INFO, "{0} Migrator(s) encontrados", beans.size());
 		for (final Bean<?> bean : beans) {
 			final CreationalContext<?> context = manager.createCreationalContext(bean);
 			final Class<?> type = bean.getBeanClass();
