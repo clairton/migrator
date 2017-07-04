@@ -73,10 +73,17 @@ public class MigratorDefault implements Migrator {
 			final Liquibase liquibase = new Liquibase(config.getChangelogPath(), resourceAccessor, database);
 			final boolean autoCommit = connection.getAutoCommit();
 			connection.setAutoCommit(FALSE);
-			try{
-				//create schema, if already exist does not a problem
-				connection.createStatement().executeQuery(format("CREATE SCHEMA %s;", config.getSchema()));
-			}catch(final Exception e){}
+            try {
+                if (config.getSchema() != null && !config.getSchema().isEmpty()) {
+                    // create schema, if already exist does not a problem
+                    connection.createStatement().executeQuery(format("CREATE SCHEMA %s;", config.getSchema()));
+                }
+            } catch (final Exception e) {
+                try {
+                    connection.rollback();
+                } catch (final SQLException e1) {
+                }
+            }
 			if (config.isDrop()) {
 				turnoff();
 				logger.log(INFO,"Deletando objetos");
@@ -97,13 +104,16 @@ public class MigratorDefault implements Migrator {
 		} catch (final Exception e) {
             try {
                 connection.rollback();
-            } catch (SQLException e1) {}
+            } catch (final SQLException e1) {}
             turnoff();
 			throw new IllegalStateException(e);
 		}
 	}
 	
 	protected void turnoff(){
+      try {
+          connection.rollback();
+      } catch (final SQLException e1) {}
 	  try {
           logger.log(INFO,"Desligando dataBase changelock");
           /*
