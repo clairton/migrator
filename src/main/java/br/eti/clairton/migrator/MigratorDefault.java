@@ -7,6 +7,7 @@ import static java.util.logging.Logger.getLogger;
 import static liquibase.database.DatabaseFactory.getInstance;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.logging.Logger;
 
 import javax.enterprise.context.Dependent;
@@ -94,6 +95,9 @@ public class MigratorDefault implements Migrator {
 			connection.commit();
 	        connection.setAutoCommit(autoCommit);
 		} catch (final Exception e) {
+            try {
+                connection.rollback();
+            } catch (SQLException e1) {}
             turnoff();
 			throw new IllegalStateException(e);
 		}
