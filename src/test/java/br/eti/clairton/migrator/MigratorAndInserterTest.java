@@ -21,6 +21,7 @@ public class MigratorAndInserterTest {
 	static {
 		System.setProperty(Config.DROP, "true");
 		System.setProperty(Config.POPULATE, "true");
+		System.setProperty(Config.MIGRATE, "true");
 	}
 
 	@Inject 

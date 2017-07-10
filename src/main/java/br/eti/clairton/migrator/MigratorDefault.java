@@ -61,13 +61,17 @@ public class MigratorDefault implements Migrator {
 	@Override
 	public void run() {
 		try {
+		    if(!config.isMigrate()){
+		        logger.log(INFO, "Não irá rodar as migrações");
+		        return;
+		    }
 			final DatabaseConnection jdbcConnection = new JdbcConnection(connection);
 			final Database database = getInstance().findCorrectDatabaseImplementation(jdbcConnection);
 			if(config.getSchema() != null && !config.getSchema().isEmpty()){
-				logger.log(INFO,"Setando o esquema padrão para {0}", config.getSchema());
+				logger.log(INFO, "Setando o esquema padrão para {0}", config.getSchema());
 				database.setDefaultSchemaName(config.getSchema());
 			} else {
-				logger.log(INFO,"Não foi setado o esquema padrão");				
+				logger.log(INFO, "Não foi setado o esquema padrão");				
 			}
 			final ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor(classLoader);
 			final Liquibase liquibase = new Liquibase(config.getChangelogPath(), resourceAccessor, database);
@@ -86,7 +90,7 @@ public class MigratorDefault implements Migrator {
             }
 			if (config.isDrop()) {
 				turnoff();
-				logger.log(INFO,"Deletando objetos");
+				logger.log(INFO, "Deletando objetos");
 				if(config.getSchema() != null && !config.getSchema().isEmpty()){
 					final CatalogAndSchema schemas = new CatalogAndSchema(null, config.getSchema());					
 					liquibase.dropAll(schemas);
@@ -95,9 +99,9 @@ public class MigratorDefault implements Migrator {
 				}
 			}
 			final String context = "";
-			logger.log(INFO,"Rodando changesets {0}", config.getChangelogPath());
+			logger.log(INFO, "Rodando changesets {0}", config.getChangelogPath());
 			liquibase.update(context);
-			logger.log(INFO,"Changesets {0} aplicados com sucesso", config.getChangelogPath());
+			logger.log(INFO, "Changesets {0} aplicados com sucesso", config.getChangelogPath());
 			inserter.run(connection, config, classLoader);
 			connection.commit();
 	        connection.setAutoCommit(autoCommit);

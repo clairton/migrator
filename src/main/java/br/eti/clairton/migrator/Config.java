@@ -8,6 +8,7 @@ import javax.enterprise.inject.Vetoed;
 
 @Vetoed
 public class Config {
+    public static final String MIGRATE = "br.eti.clairton.migrator.migrate";
 	public static final String POPULATE = "br.eti.clairton.migrator.populate";
 	public static final String DROP = "br.eti.clairton.migrator.drop";
 	private final String dataSetPath;
@@ -46,6 +47,15 @@ public class Config {
 			return valueOf(property);
 		}
 	}
+
+    public Boolean isMigrate() {
+        final String property = getProperty(MIGRATE);
+        if (property == null) {
+            return FALSE;
+        } else {
+            return valueOf(property);
+        }
+    }
 
 	public String getDataSetPath() {
 		return dataSetPath;

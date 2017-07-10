@@ -30,6 +30,7 @@ public class InserterTest {
 	static {
 		setProperty(Config.DROP, "true");
 		setProperty(Config.POPULATE, "true");
+		setProperty(Config.MIGRATE, "true");
 	}
 
 	private Connection connection;

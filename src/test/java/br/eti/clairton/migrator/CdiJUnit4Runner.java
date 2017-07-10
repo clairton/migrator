@@ -7,6 +7,7 @@ public class CdiJUnit4Runner extends CdiTestRunner {
 	static {
 		System.setProperty(Config.DROP, "true");
 		System.setProperty(Config.POPULATE, "true");
+        System.setProperty(Config.MIGRATE, "true");
 	}
 
 	public CdiJUnit4Runner(final Class<?> klass) throws InitializationError {

@@ -5,6 +5,7 @@ de br.eti.clairton.migrator.Config, como por exemplo:
 ```java
 @Produces
 public Config getConfig(){
+  System.setProperty("br.eti.clairton.migrator.migrate", "true");
   System.setProperty("br.eti.clairton.migrator.populate", "true");
   System.setProperty("br.eti.clairton.migrator.drop", "true");
   final String diretorioDataSets = "resources/datasets";
@@ -21,8 +22,8 @@ id,nome
 ```
 Na intancia de config pode-se configurar se o liquibase ira deletar o banco antes de aplicar as alterações, e
 se será populado o banco com os changesets. O comportamente pode ser alterado setando as propriedades
-"br.eti.clairton.migrator.populate" e "br.eti.clairton.migrator.drop", 
-ou especializando o Config e personalizando os métodos "isDrop" e "isPopulate".
+"br.eti.clairton.migrator.populate", "br.eti.clairton.migrator.drop" e "br.eti.clairton.migrator.migrate" 
+ou especializando o Config e personalizando os métodos "isDrop", "isPopulate" e "isMigrate".
 
 Necessitará fornecer uma instancia de Connection com qualifier @Default.
 
@@ -31,6 +32,7 @@ Download através do maven, dependência:
 <dependency>
 	<groupId>br.eti.clairton</groupId>
     <artifactId>migrator</artifactId>
-	<version>1.4.0</version>
+	<version>1.5.0</version>
+	<scope>compile</scope>
 </dependency>
 ```
