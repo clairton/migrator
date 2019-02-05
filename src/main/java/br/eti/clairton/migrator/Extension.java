@@ -37,6 +37,7 @@ public class Extension implements javax.enterprise.inject.spi.Extension {
 			final Class<?> type = bean.getBeanClass();
 			final Object object = manager.getReference(bean, type, context);
 			final Migrator instance = (Migrator) object;
+			logger.log(INFO, "Rodando {0}", instance.getClass());
 			instance.run();
 		}
 	}
