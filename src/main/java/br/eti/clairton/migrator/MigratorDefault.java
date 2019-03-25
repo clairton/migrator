@@ -137,4 +137,20 @@ public class MigratorDefault implements Migrator {
           }catch (final Exception e) {}
       }
 	}
+	
+	public Connection getConnection() {
+		return connection;
+	}
+	
+	public Config getConfig() {
+		return config;
+	}
+	
+	public ClassLoader getClassLoader() {
+		return classLoader;
+	}
+	
+	public Inserter getInserter() {
+		return inserter;
+	}
 }
