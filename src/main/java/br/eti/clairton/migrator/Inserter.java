@@ -55,11 +55,11 @@ public class Inserter {
 	private final DefaultDataTypeFactory factory;
 
 	public Inserter() {
-	  this(new HsqldbDataTypeFactory());
+		this(new HsqldbDataTypeFactory());
 	}
 
 	public Inserter(final DefaultDataTypeFactory factory) {
-	  this.factory = factory;
+		this.factory = factory;
 	}
 
 	public void run(final Connection connection, final Config config, final ClassLoader classLoader) throws Exception {
@@ -71,14 +71,14 @@ public class Inserter {
 			while (resources != null && resources.hasMoreElements()) {
 				final URL url = resources.nextElement();
 				final String scheme = url.toURI().getScheme();
-				if("vfs".equals(scheme)){
+				if ("vfs".equals(scheme)) {
 					final InputStream inputStream = url.openStream();
-					if(inputStream instanceof JarInputStream){						
+					if (inputStream instanceof JarInputStream) {
 						final JarInputStream jarStream = (JarInputStream) inputStream;
 						files.addAll(loadJar(jarStream, classLoader, path));
 					}
-				}else if ("jar".equals(scheme)) {
-					logger.log(INFO,"Jar " + url.getPath());
+				} else if ("jar".equals(scheme)) {
+					logger.log(INFO, "Jar " + url.getPath());
 					final JarURLConnection conn = (JarURLConnection) url.openConnection();
 					final Enumeration<JarEntry> en = conn.getJarFile().entries();
 					final String mainEntryName = conn.getEntryName();
@@ -94,23 +94,24 @@ public class Inserter {
 					}
 				} else {
 					final File file = new File(url.getPath());
-					logger.log(INFO,"Diretório {0}", file);
+					logger.log(INFO, "Diretório {0}", file);
 					listFilesForFolder(file, files);
 				}
 			}
 			load(files.toArray(new URL[files.size()]), connection, config.getSchema());
 		}
 	}
-	
-	public List<URL> loadJar(final JarInputStream jarStream,final ClassLoader classLoader, final String path) throws IOException{
+
+	public List<URL> loadJar(final JarInputStream jarStream, final ClassLoader classLoader, final String path)
+			throws IOException {
 		final List<URL> files = new ArrayList<URL>();
 		while (true) {
 			final JarEntry entry = jarStream.getNextJarEntry();
-			if(entry == null){
+			if (entry == null) {
 				break;
-			}else{
-				if(entry.toString().endsWith(".csv")){									
-					final URL file = classLoader.getResource(path+"/"+entry);
+			} else {
+				if (entry.toString().endsWith(".csv")) {
+					final URL file = classLoader.getResource(path + "/" + entry);
 					logger.log(FINE, "Adicionando arquivo csv {0}", file);
 					files.add(file);
 				}
@@ -126,7 +127,7 @@ public class Inserter {
 			}
 		} else {
 			if (file.toString().endsWith(".csv")) {
-				logger.log(FINE,"Adicionando arquivo csv {0}", file);
+				logger.log(FINE, "Adicionando arquivo csv {0}", file);
 				try {
 					files.add(new File(file.toString()).toURI().toURL());
 				} catch (final MalformedURLException e) {
@@ -137,39 +138,33 @@ public class Inserter {
 	}
 
 	/**
-	 * Carrega os arquivos passados como parametro. Utiliza o EntityManager com qualificador {@link Default}.
+	 * Carrega os arquivos passados como parametro. Utiliza o EntityManager com
+	 * qualificador {@link Default}.
 	 * 
-	 * @param annotation
-	 *            marcacao de dataSet
-	 * @param connection
-	 *            connection to load datasets
-	 * @param schema
-	 *            schema to load datasets
-	 * @throws Exception
-	 *             caso ocorra um erro ao popular a dataBase
+	 * @param annotation marcacao de dataSet
+	 * @param connection connection to load datasets
+	 * @param schema     schema to load datasets
+	 * @throws Exception caso ocorra um erro ao popular a dataBase
 	 */
-	public void load(final DataSet annotation, final Connection connection, final String schema)throws Exception {
+	public void load(final DataSet annotation, final Connection connection, final String schema) throws Exception {
 		final Collection<String> files = asList(annotation.value());
-		logger.log(INFO,"Datasets a inserir {0}", files);
+		logger.log(INFO, "Datasets a inserir {0}", files);
 		final Annotation qualifier = getQualifier(annotation.qualifier());
-		logger.log(INFO,"Recuperando conexão com qualifier {0}", qualifier.annotationType().getSimpleName());
-		logger.log(INFO,"Conexão recuperada {0}", connection);
+		logger.log(INFO, "Recuperando conexão com qualifier {0}", qualifier.annotationType().getSimpleName());
+		logger.log(INFO, "Conexão recuperada {0}", connection);
 		load(files, connection, schema);
 	}
 
 	/**
 	 * Carrega os arquivos passados como parametro.
 	 * 
-	 * @param files
-	 *            arquivos a serem carregados
-	 * @param connection
-	 *            conexão
-	 * @param schema
-	 *            schema to load datasets
-	 * @throws Exception
-	 *             caso ocorra um erro ao popular a dataBase
+	 * @param files      arquivos a serem carregados
+	 * @param connection conexão
+	 * @param schema     schema to load datasets
+	 * @throws Exception caso ocorra um erro ao popular a dataBase
 	 */
-	public void load(final Collection<String> files, final Connection connection, final String schema)throws Exception {
+	public void load(final Collection<String> files, final Connection connection, final String schema)
+			throws Exception {
 		final Collection<URL> csvs = new ArrayList<URL>(files.size());
 		for (final String path : files) {
 			final ClassLoader cl = getClass().getClassLoader();
@@ -183,13 +178,13 @@ public class Inserter {
 		load(csvs.toArray(new URL[csvs.size()]), connection, schema);
 	}
 
-	public void load(final URL[] files, final Connection connection, final String schema)throws Exception {
+	public void load(final URL[] files, final Connection connection, final String schema) throws Exception {
 		final Collection<IDataSet> dataSets = new ArrayList<IDataSet>(files.length);
 		for (final URL file : files) {
 			if (!file.toString().endsWith(".csv")) {
 				throw new IllegalStateException("Only supports CSV and SQL data sets for the moment");
 			}
-			logger.log(INFO,"Adicionando dataset {0}", file.toString());
+			logger.log(INFO, "Adicionando dataset {0}", file.toString());
 			// Decorate the class and call addReplacementObject method
 			final ReplacementDataSet rDataSet = new ReplacementDataSet(new CsvDataSet(file));
 			final String content = getString(file.openStream());
@@ -223,20 +218,16 @@ public class Inserter {
 	/**
 	 * Carrega os arquivos passados como parametro.
 	 * 
-	 * @param path
-	 *            onde estão os arquivos
-	 * @param connection
-	 *            conexão com banco de dados
-	 * @param schema
-	 *            schema to load datasets
-	 * @throws Exception
-	 *             caso ocorra algun problema
+	 * @param path       onde estão os arquivos
+	 * @param connection conexão com banco de dados
+	 * @param schema     schema to load datasets
+	 * @throws Exception caso ocorra algun problema
 	 */
-	public void load(final String path, final Connection connection, final String schema)throws Exception {
+	public void load(final String path, final Connection connection, final String schema) throws Exception {
 		final IDataSet dataSet = new org.dbunit.dataset.csv.CsvDataSet(new File(path));
-		logger.log(INFO,"Inserindo datasets: ");
+		logger.log(INFO, "Inserindo datasets: ");
 		for (final String table : dataSet.getTableNames()) {
-			logger.log(FINE,"     {0}", table);
+			logger.log(FINE, "     {0}", table);
 		}
 		load(dataSet, connection, schema);
 	}
@@ -244,14 +235,10 @@ public class Inserter {
 	/**
 	 * Carrega o dataset passados como parametro.
 	 * 
-	 * @param dataSet
-	 *            com os dados
-	 * @param connection
-	 *            conexão com banco de dados
-	 * @param schema
-	 *            schema to load datasets
-	 * @throws Exception
-	 *             caso ocorra algun problema
+	 * @param dataSet    com os dados
+	 * @param connection conexão com banco de dados
+	 * @param schema     schema to load datasets
+	 * @throws Exception caso ocorra algun problema
 	 */
 	public void load(final IDataSet dataSet, final Connection connection, final String schema) throws Exception {
 		final IDatabaseConnection ddsc = new DatabaseConnection(connection, schema);
@@ -262,12 +249,9 @@ public class Inserter {
 	/**
 	 * Faz o insert do dataset na conexão passados como parametro.
 	 * 
-	 * @param dataSet
-	 *            com os dados
-	 * @param connection
-	 *            conexão com banco de dados
-	 * @throws Exception
-	 *             caso ocorra algun problema
+	 * @param dataSet    com os dados
+	 * @param connection conexão com banco de dados
+	 * @throws Exception caso ocorra algun problema
 	 */
 	public void insert(final IDataSet dataSet, final IDatabaseConnection connection) throws Exception {
 		INSERT.execute(connection, dataSet);
@@ -293,14 +277,14 @@ public class Inserter {
 				sb.append("\n");
 			}
 
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (final IOException e) {
+			throw new RuntimeException(e);
 		} finally {
 			if (br != null) {
 				try {
 					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
+				} catch (final IOException e) {
+					throw new RuntimeException(e);
 				}
 			}
 		}

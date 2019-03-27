@@ -24,7 +24,6 @@ public class Config {
 	}
 	
 	public Config(final String dataSetPath, final String changelogPath, final String schema) {
-		super();
 		this.dataSetPath = dataSetPath;
 		this.changelogPath = changelogPath;
 		this.schema = schema;
