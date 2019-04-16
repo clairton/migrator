@@ -21,8 +21,7 @@ public class Resource {
 	private final Connection connection;
 
 	public Resource() throws Exception {
-		System.setProperty(Config.POPULATE, "true");
-		final String url = "jdbc:hsqldb:file:target/database/migrator;hsqldb.lock_file=false;shutdown=true;create=true";
+		final String url = "jdbc:hsqldb:mem:migrator";
 		connection = DriverManager.getConnection(url, "sa", "");
 		connection.setAutoCommit(true);
 	}
@@ -37,8 +36,7 @@ public class Resource {
 		return connection;
 	}
 
-	public void closeConnection(@Disposes Connection connection)
-			throws Exception {
+	public void closeConnection(@Disposes Connection connection) throws Exception {
 		connection.close();
 	}
 }

@@ -6,8 +6,8 @@ import static java.sql.DriverManager.getConnection;
 import static java.util.Arrays.asList;
 import static java.util.Collections.enumeration;
 import static org.jboss.vfs.VFS.getChild;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.jar.JarInputStream;
 
 import org.jboss.vfs.VirtualFile;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class InserterTest {
 	static {
@@ -35,9 +35,9 @@ public class InserterTest {
 
 	private Connection connection;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
-		final String url = "jdbc:hsqldb:file:target/database/migrator2;hsqldb.lock_file=false;shutdown=true;create=true";
+		final String url = "jdbc:hsqldb:mem:migrator2";
 		connection = getConnection(url, "sa", "");
 		connection.setAutoCommit(true);
 		try {
