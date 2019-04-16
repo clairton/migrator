@@ -4,6 +4,7 @@ import static org.jboss.weld.junit5.WeldInitiator.of;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import javax.enterprise.context.ContextNotActiveException;
+import javax.enterprise.inject.spi.CDI;
 
 import org.jboss.weld.junit5.EnableWeld;
 import org.jboss.weld.junit5.WeldInitiator;
@@ -29,7 +30,7 @@ class ContextActivatorIntegrationTest {
 	@Test
 	public void contextActive() throws Exception {
 		final ContextActivator activator = new ContextActivator();
-		activator.start();
+		activator.start(CDI.current().getBeanManager());
 		sum(1, 2);
 		activator.stop();
 

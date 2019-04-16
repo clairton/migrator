@@ -6,6 +6,8 @@ import static java.util.logging.Logger.getLogger;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -31,28 +33,31 @@ public class Extension implements javax.enterprise.inject.spi.Extension {
 	private Integer count = 0;
 
 	public void run(final @Observes AfterDeploymentValidation adv, final BeanManager manager) throws Exception {
+		logger.log(INFO, "Iniciando Migrator Extension");
+		final Set<Bean<?>> beans = manager.getBeans(Migrator.class, any);
+		final Collection<Migrator> migrators = new LinkedList<>();
+		for (final Bean<?> bean : beans) {
+			final CreationalContext<?> context = manager.createCreationalContext(bean);
+			final Class<?> type = bean.getBeanClass();
+			final Object object = manager.getReference(bean, type, context);
+			final Migrator instance = (Migrator) object;
+			migrators.add(instance);
+		}
+		run(new ContextActivator(), manager, migrators);
+	}
+
+	public void run(final ContextActivator activator, final BeanManager manager, final Collection<Migrator> migrators)
+			throws Exception {
 		try {
-			logger.log(INFO, "Iniciando Migrator Extension");
-			final Set<Bean<?>> beans = manager.getBeans(Migrator.class, any);
-			logger.log(INFO, "{0} Migrator(s) encontrados", beans.size());
-			for (final Bean<?> bean : beans) {
-				final CreationalContext<?> context = manager.createCreationalContext(bean);
-				final Class<?> type = bean.getBeanClass();
-				final Object object = manager.getReference(bean, type, context);
-				final Migrator instance = (Migrator) object;
-				logger.log(INFO, "Rodando {0}", instance.getClass());
-				instance.run();
-			}
+			run(migrators);
 		} catch (final ContextNotActiveException e) {
 			// activate request escope
 			count++;
-			final String name = "javax.enterprise.context.control.RequestContextController";
 			try {
-				final ContextActivator activator = new ContextActivator(manager);
-				activator.start();
+				activator.start(manager);
 				if (count <= 1) {
 					try {
-						run(adv, manager);
+						run(migrators);
 					} catch (final Throwable t) {
 						throw t;
 					} finally {
@@ -60,11 +65,19 @@ public class Extension implements javax.enterprise.inject.spi.Extension {
 					}
 				}
 			} catch (final ClassNotFoundException c) {
-				logger.log(INFO, "Class {0} not found", name);
+				logger.log(INFO, c.getMessage());
 			} catch (final NoSuchMethodException | IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException c) {
 				logger.log(WARNING, "Erro on active/deactive scope", c);
 			}
+		}
+	}
+
+	public void run(final Collection<Migrator> migrators) throws Exception {
+		logger.log(INFO, "{0} Migrator(s) encontrados", migrators.size());
+		for (final Migrator migrator : migrators) {
+			logger.log(INFO, "Rodando {0}", migrator.getClass());
+			migrator.run();
 		}
 	}
 }
