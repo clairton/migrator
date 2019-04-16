@@ -1,15 +1,15 @@
 package br.eti.clairton.migrator;
 
 import static java.util.logging.Level.INFO;
+import static java.util.logging.Level.WARNING;
 import static java.util.logging.Logger.getLogger;
-import static javax.enterprise.inject.spi.CDI.current;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.enterprise.context.ContextNotActiveException;
-import javax.enterprise.context.control.RequestContextController;
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.Any;
@@ -46,16 +46,24 @@ public class Extension implements javax.enterprise.inject.spi.Extension {
 		} catch (final ContextNotActiveException e) {
 			// activate request escope
 			count++;
-			final RequestContextController controller = current().select(RequestContextController.class).get();
-			controller.activate();
-			if (count <= 1) {
-				try {
-					run(adv, manager);
-				} catch (final Throwable t) {
-					throw t;
-				} finally {
-					controller.deactivate();
+			final String name = "javax.enterprise.context.control.RequestContextController";
+			try {
+				final ContextActivator activator = new ContextActivator(manager);
+				activator.start();
+				if (count <= 1) {
+					try {
+						run(adv, manager);
+					} catch (final Throwable t) {
+						throw t;
+					} finally {
+						activator.stop();
+					}
 				}
+			} catch (final ClassNotFoundException c) {
+				logger.log(INFO, "Class {0} not found", name);
+			} catch (final NoSuchMethodException | IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException c) {
+				logger.log(WARNING, "Erro on active/deactive scope", c);
 			}
 		}
 	}
