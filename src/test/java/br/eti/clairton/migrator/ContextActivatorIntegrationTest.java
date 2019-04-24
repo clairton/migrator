@@ -29,8 +29,8 @@ class ContextActivatorIntegrationTest {
 
 	@Test
 	public void contextActive() throws Exception {
-		final ContextActivator activator = new ContextActivator();
-		activator.start(CDI.current().getBeanManager());
+		final ContextActivator activator = new ContextActivator(CDI.current().getBeanManager());
+		activator.start();
 		sum(1, 2);
 		activator.stop();
 

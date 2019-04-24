@@ -8,11 +8,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import javax.inject.Inject;
+
 import org.jboss.weld.junit5.EnableWeld;
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -31,12 +32,8 @@ public class MigratorAndInserterIntegrationTest {
 	@WeldSetup
 	public WeldInitiator weld = of(classes);
 
+	@Inject
 	private Connection connection;
-
-	@BeforeEach
-	public void setUp() {
-		connection = weld.select(Connection.class).get();
-	}
 
 	@Test
 	public void testRun() throws SQLException {

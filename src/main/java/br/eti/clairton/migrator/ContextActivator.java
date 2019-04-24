@@ -12,15 +12,25 @@ public class ContextActivator {
 	private Class<?> klazz;
 	private Object controller;
 
-	public void start(final BeanManager manager) throws Exception {
-		lookupController(manager);
-		final Method activate = klazz.getMethod("activate");
-		activate.invoke(controller);
+	public ContextActivator(final BeanManager manager) {
+		try {
+			lookupController(manager);
+		} catch (final ClassNotFoundException e) {
+		}
+	}
+
+	public void start() throws Exception {
+		if (controller != null) {
+			final Method activate = klazz.getMethod("activate");
+			activate.invoke(controller);
+		}
 	}
 
 	public void stop() throws Exception {
-		final Method deactivate = klazz.getMethod("deactivate");
-		deactivate.invoke(controller);
+		if (controller != null) {
+			final Method deactivate = klazz.getMethod("deactivate");
+			deactivate.invoke(controller);
+		}
 	}
 
 	private void lookupController(final BeanManager manager) throws ClassNotFoundException {
