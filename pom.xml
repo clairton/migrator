@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>br.eti.clairton</groupId>
 	<artifactId>migrator</artifactId>
-	<version>1.6.3</version>
+	<version>1.6.4</version>
 	<name>Migrator</name>
 	<description>Migrator Java with Liquibase</description>
 	<url>https://github.com/clairton/mirator</url>
@@ -45,7 +45,11 @@
 					<artifactId>junit</artifactId>
 					<groupId>junit</groupId>
 				</exclusion>
-			</exclusions>
+            	<exclusion>
+            		<groupId>postgresql</groupId>
+            		<artifactId>postgresql</artifactId>
+            	</exclusion>
+            </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.liquibase</groupId>
